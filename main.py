@@ -63,9 +63,10 @@ class Game:
             self.player.update()
             # Draw player
             self.player.draw(self.screen)
+
             # TODO: update and draw enemies and bullets
 
-            # Update action
+            # Update action. TODO: shouldn't it be a function?
             if self.player.moving_up:
                 self.player.update_action(1)
             elif self.player.moving_right:
@@ -141,6 +142,8 @@ class Character(pygame.sprite.Sprite):
         self.shooting = False
         # Set speed
         self.speed = 1
+        # Set the shoot cooldown counter
+        self.shoot_cooldown = 0
         # Set health
         self.health = 10
         # Set max health
@@ -215,7 +218,24 @@ class Character(pygame.sprite.Sprite):
         if self.moving_right and (self.x + (self.image.get_width() / 2)) < self.settings.screen_width:
             self.x += self.speed
 
-    # Define a method for updating animation
+    # TODO: Define a method for shooting arrows
+    def shoot(self):
+        # Shoot arrows - instantiate Bullet next to the barrel of the gun
+        # Check if the cooldown counter == 0 and ammo > 0
+        if self.shoot_cooldown == 0:
+            # Set cooldown counter to 20 (it will decrease then)
+            self.shoot_cooldown = 20
+            # # TODO: ARROWS AND SHOOTING
+            # # centerx, centery -> the middle of the player
+            # # player.rect.size[0] -> width of the player
+            # # the player.direction is 1 or -1
+            # arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction),
+            #                 self.rect.centery,
+            #                 self.direction)
+            # # Add the bullet to the bullet group
+            # arrow_group.add(arrow)
+
+    # Update animation
     def update_animation(self):
         # Change the animation's index after a short time.
         # Update image depending on current action and frame index
@@ -240,6 +260,77 @@ class Character(pygame.sprite.Sprite):
     def draw(self, screen):
         self.rect.center = vec(self.x, self.y)
         screen.blit(self.image, self.rect)
+
+
+# TODO: CREATE CLASS ARROW; KEEP IN MIND THAT ONLY THE PLAYER USES THE BULLETS
+class Arrow(pygame.sprite.Sprite):
+    # Create the constructor for the Bullet class
+    # (args: x, y -> coordinates,
+    #        direction -> where the bullet goes TODO: ANGLE AND SUITABLE ARROW IMAGE)
+    def __init__(self, x, y, direction):
+        # Initialize Sprite
+        super().__init__()
+
+        # # So it was in the tutorial:
+        # pygame.sprite.Sprite.__init__(self)
+
+        # Set settings
+        self.settings = Settings()
+        # Set speed (in this case all bullets have the same speed)
+        self.speed = 10
+
+        # TODO: Define image - according to the direction!
+        #  Presumably a list of images will be necessary,
+        #  just like with the player's animation list.
+        self.image = pygame.image.load(f'assets/arrow.png').convert_alpha()
+
+        # Create rectangle for bullet
+        self.rect = self.image.get_rect()
+        # Set position of the rectangle's center
+        self.rect.center = (x, y)
+        # Set direction
+        self.direction = direction
+
+    def update(self):
+
+        # Move bullet left, right, up, down or diagonally at the bullet's speed
+        # TODO: Everything should be done actually
+        self.rect.x += (self.speed * self.direction)
+
+        # Check if bullet has gone off screen
+        # TODO: Up and down screen edge
+        if self.rect.right < 0 or self.rect.left > self.settings.screen_width:
+            # Delete the bullet, if it's off screen
+            # The method .kill is inherited from the Sprite class
+            self.kill()
+
+        # Check collision of the bullet with player
+        # TODO: update all this. How to pass in a player object? Is it really a good idea?
+        #  See some tutorials on bullet shooting to solve this problem.
+        # Args: sprite -> sprite which collides
+        #       group -> group of sprites to collide with
+        #       dokill -> remove automatically each collided sprite from the group
+        # NOTE: mask not used! Collides with rect (to improve later)
+        # If the bullet hits the player:
+        # if pygame.sprite.spritecollide(sprite=player, # TODO: ???
+        #                                group=bullet_group, # TODO: ???
+        #                                dokill=False):
+        #     # If the player is alive:
+        #     if player.alive:
+        #         # Decrease player's health by 5
+        #         player.health -= 5
+        #         # Delete bullet
+        #         self.kill()
+        # # Check collision of the bullet with enemy
+        # if pygame.sprite.spritecollide(sprite=enemy,
+        #                                group=bullet_group,
+        #                                dokill=False):
+        #     # Delete bullet if the enemy is alive
+        #     if enemy.alive:
+        #         # Decrease enemy health by 25
+        #         enemy.health -= 25
+        #         # Delete bullet
+        #         self.kill()
 
 
 # RUN GAME
