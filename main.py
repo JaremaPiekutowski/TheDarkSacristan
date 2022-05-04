@@ -8,19 +8,31 @@
 # 6. Character shooting
 
 # TODO:
-#  - Draw enemy sprites - the Cthulhu dogs (ca. 3 frames), Small Cthulhus, Bishops, Big Cthulhus, The Great Cthulhu
+#  - Draw enemy sprites (ca. 3 frames each,size=32x32):
+#       - the Cthulhu dogs: scale=2, health=1, waves: (4, 6, 8)
+#       - Small Cthulhus: scale=1 health=1, waves: (8, 10, 12)
+#       - Dzhiengas: scale=2, health=2 (changing colour after shoot or healthbar), waves: (4, 6, 8)
+#       - Big Cthulhus: scale=2, health=3 (a.a.), waves: (4, 6, 8),
+#       - The Great Cthulhu: scale=4/5, health=20, one wave.
 #  - Create Enemy class (inheriting from the Character class?) with mechanics of enemy movements
-#     for the 5 levels of 3 waves and necessary methods (move, collision detection);
-#  - Introduce enemies in-game;
-#  - Introduce healthbar and scoring
-#  - Create title screen
+#     for the 5 levels of 3 waves and necessary methods (move, collision detection).
+#     The mechanics is simple; every enemy starts to go in a random direction, they bounce off themselves.
+#     In the further levels maybe there could be a bigger probability that they approach the player,
+#     however, it's not very important, no idea how to do this by now.
+#  - Introduce enemies in the Game.run method;
+#  - Introduce healthbar for the player;
+#  - Introduce healthbars for enemies (?)
+#  - Introduce scoring;
+#  - Create title screen;
 #  - Create intro (3 pictures and text, fading to black)
 #  - Create five level cutscenes (fading to black)
+#  - Create outro
 #  - Introduce music (make chiptunes)
 #  - Introduce sound effects
 #  - Convert to .exe
+
 #  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
-#    better OOP, parts to files etc. if necessary
+#    better OOP, parts to files, disable autofire, create collectibles, high score table etc. if necessary
 
 # IMPORT NECESSARY MODULES
 import pygame
