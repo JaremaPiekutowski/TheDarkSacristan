@@ -6,33 +6,40 @@
 # 4. Character moving
 # 5. Character animation
 # 6. Character shooting
+# 7. Class Enemy
+# 8. Introduce the first enemy
 
 # TODO:
-#  - Draw enemy sprites (ca. 3 frames each,size=32x32):
-#       - the Cthulhu dogs: scale=2, health=1, waves: (4, 6, 8)
-#       - Small Cthulhus: scale=1 health=1, waves: (8, 10, 12)
-#       - Dzhiengas: scale=2, health=2 (changing colour after shoot or healthbar), waves: (4, 6, 8)
-#       - Big Cthulhus: scale=2, health=3 (a.a.), waves: (4, 6, 8),
-#       - The Great Cthulhu: scale=4/5, health=20, one wave.
-#  - Create Enemy class (inheriting from the Character class?) with mechanics of enemy movements
-#     for the 5 levels of 3 waves and necessary methods (move, collision detection).
-#     The mechanics is simple; every enemy starts to go in a random direction, they bounce off themselves.
-#     In the further levels maybe there could be a bigger probability that they approach the player,
-#     however, it's not very important, no idea how to do this by now.
-#  - Introduce enemies in the Game.run method;
-#  - Introduce healthbar for the player;
-#  - Introduce healthbars for enemies (?)
-#  - Introduce scoring;
+#  - Draw enemy sprites (ca. 2 frames each,size=32x32):
+#       - the Cthulhu dogs: scale=2, health=1, waves: (4, 6, 8) - 1 frame
+#       - Small Cthulhus: scale=1 health=1, waves: (8, 10, 12) - 2 frames
+#       - Dzhiengas: scale=2, health=2 (changing colour after shoot or healthbar), waves: (4, 6, 8)  - 2 frames
+#       - Big Cthulhus: scale=2, health=3 (a.a.), waves: (4, 6, 8) - 2 frames
+#       - The Great Cthulhu: scale=4/5, health=20, one wave - 2/3 frames
+#  - Add necessary methods to the Enemy class (animations, cooldowns, collision)
+#  - Add collision detection to Player and Arrow;
+#  - Add Enemy and Player hurt/death scenes;
+#  - Add healthbar for the player;
+#  - Add healthbars for enemies (?)
+#  - Add scoring system and score labels;
+#  - Add levels;
 #  - Create title screen;
 #  - Create intro (3 pictures and text, fading to black)
 #  - Create five level cutscenes (fading to black)
 #  - Create outro
+#  - Create game over scene
 #  - Introduce music (make chiptunes)
 #  - Introduce sound effects
 #  - Convert to .exe
 
 #  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
-#    better OOP, parts to files, disable autofire, create collectibles, high score table etc. if necessary
+#    better OOP (an abstract class Character should be created!), parts to files, disable autofire,
+#    create collectibles, different weapons, more levels, high score table etc. if necessary.
+#    In the further levels maybe there could be a bigger probability that the enemies approach the player,
+#    instead of just wandering at random, which can be achieved using weighed probabilities (random.choices())
+#    The links should be created using the os.join() method to provide work under all OS's.
+
+
 
 # IMPORT NECESSARY MODULES
 import pygame
@@ -62,6 +69,8 @@ class Game:
         self.player = Character(100, 100)
         # Create arrow group
         self.arrow_group = pygame.sprite.Group()
+        # Create enemy
+        self.enemy = Enemy(150, 150)
         # Set level
         self.level = 0
 
@@ -91,8 +100,12 @@ class Game:
             # Shoot if player shoots
             if self.player.shooting:
                 self.player.shoot(self.arrow_group)
+            # Move enemy
+            self.enemy.move()
+            # Draw enemy
+            self.enemy.draw(self.screen)
 
-            # TODO: update and draw enemies
+            # TODO: update and draw enemy group
 
             # Move player
             if pygame.time.get_ticks() >= self.player.next_move:
@@ -316,6 +329,220 @@ class Character(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
+# ENEMY CLASS
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, scale=3):
+        # Initialize the parent Sprite class
+        super().__init__()
+        # Get settings
+        self.settings = Settings()
+        # Check if alive
+        self.alive = True
+        # Set position
+        self.x = x
+        self.y = y
+        # Set move list
+        self.move_list = ["up", "up_right", "right", "down_right", "down", "down_left", "left", "up_left"]
+        # Set first movement
+        self.movement = random.choice(self.move_list)
+        # Set speed
+        self.speed = 1
+        # Set health
+        self.health = 10
+        # Set max health
+        self.max_health = 10
+        # Set next move time
+        self.next_move = pygame.time.get_ticks() + 3
+        # Set scale
+        self.scale = scale
+
+        # # TODO: Initialize an empty animation list
+        # self.animation_list = []
+
+        # # TODO: Set frame index
+        # self.frame_index = 0
+
+        # TODO: Set action
+        # (0 - idle, 1 - moving up, 2 - moving right,
+        #  3 - moving left, 4 - moving right, TODO: 5 - dead)
+        # self.action = 0
+
+        # TODO: Set animation cooldown
+        # self.animation_cooldown = 100
+
+        # TODO: Set update time for updating animation (get baseline for animation sequence)
+        # self.update_time = pygame.time.get_ticks()
+
+        # TODO: Create a list of lists (OR LIST?) for animation
+        # # Create a dictionary of animation types
+        # animation_types = {"idle": 4, "up": 4, "right": 5, "down": 4, "left": 5}
+        # # Iterate over dictionary
+        # for key, value in animation_types.items():
+        #     # Create/reset a temporary list of frames
+        #     current_frame_list = []
+        #     # Iterate over the frames from the current animation
+        #     for frame_number in range(value):
+        #         # Load i-th image from the specified directory
+        #         img = pygame.image.load(f'assets/player_{key}_{frame_number}.png').convert_alpha()
+        #         # Transform the image according to the scale
+        #         img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
+        #                                            int(img.get_height() * self.scale)))
+        #         # Add the image to the list as the next frame
+        #         current_frame_list.append(img)
+        #     # Append the temporary frame list to the animation list of lists
+        #     self.animation_list.append(current_frame_list)
+
+        # Set character image
+        # TODO: from the animation list
+        # self.image = self.animation_list[self.action][self.frame_index]
+        # CURRENTLY: PROVISIONAL
+        enemy_image = pygame.image.load(f'assets/lev1_0.png').convert_alpha()
+        self.image = pygame.transform.scale(enemy_image, (int(enemy_image.get_width() * self.scale),
+                                                          int(enemy_image.get_height() * self.scale)))
+        # Get rectangle
+        self.rect = self.image.get_rect()
+
+    # # TODO: Update the state of the character
+    # def update(self):
+    #     # Update action
+    #     if self.moving_up:
+    #         self.update_action(1)
+    #     elif self.moving_down:
+    #         self.update_action(3)
+    #     elif self.moving_right:
+    #         self.update_action(2)
+    #     elif self.moving_left:
+    #         self.update_action(4)
+    #     else:
+    #         self.update_action(0)
+    #     # Update animation
+    #     self.update_animation()
+    #     # Decrease shoot cooldown counter
+    #     if self.shoot_cooldown > 0:
+    #         self.shoot_cooldown -= 1
+    #     # TODO: Check if alive
+
+    # # TODO: Update the action of character
+    # def update_action(self, new_action):
+    #     # Check if the new action is different than the previous one
+    #     # And if so - set new action
+    #     if new_action != self.action:
+    #         self.action = new_action
+    #         # Update animation settings
+    #         # Reset frame index to 0
+    #         self.frame_index = 0
+    #         # Set current time as the update time
+    #         self.update_time = pygame.time.get_ticks()
+
+    # Move the character
+    def move(self):
+        print(f"\nMovement: {self.movement}")
+        print(f"X: {self.x}")
+        print(f"Y: {self.y}")
+
+        # Movement up
+        if self.movement == "up" and self.y - (self.image.get_height() / 2) > 0:
+            self.y -= self.speed
+        elif self.movement == "up" and self.y - (self.image.get_height() / 2) <= 0:
+            self.movement = random.choice(["down_left", "down", "down_right"])
+
+        # Movement up-right
+        if self.movement == "up_right" \
+                and self.y - (self.image.get_height() / 2) > 0 \
+                and self.x + (self.image.get_width() / 2) < self.settings.screen_width:
+            self.x += self.speed
+            self.y -= self.speed
+        elif self.movement == "up_right" \
+                and self.y - (self.image.get_height() / 2) <= 0:
+            self.movement = random.choice(["down_left", "down", "down_right"])
+        elif self.movement == "up_right" \
+                and self.x + (self.image.get_width() / 2) <= self.settings.screen_width:
+            self.movement = random.choice(["up_left", "left", "down_left"])
+
+        # Movement up-left
+        if self.movement == "up_left" \
+                and self.y - (self.image.get_height() / 2) > 0 \
+                and self.x - (self.image.get_width() / 2) > 0:
+            self.x -= self.speed
+            self.y -= self.speed
+        elif self.movement == "up_left" \
+                and self.y - (self.image.get_height() / 2) <= 0:
+            self.movement = random.choice(["down_left", "down", "down_right"])
+        elif self.movement == "up_left" \
+                and self.x - (self.image.get_width() / 2) <= 0:
+            self.movement = random.choice(["up_right", "right", "down_right"])
+
+        # Movement down
+        if self.movement == "down" \
+                and self.y + (self.image.get_height() / 2) < self.settings.screen_height:
+            self.y += self.speed
+        elif self.movement == "down" \
+                and self.y + (self.image.get_height() / 2) >= self.settings.screen_height:
+            self.movement = random.choice(["up_left", "up", "up_right"])
+
+        # Movement down-right
+        if self.movement == "down_right" \
+                and self.y + (self.image.get_height() / 2) < self.settings.screen_height \
+                and self.x + (self.image.get_width() / 2) < self.settings.screen_width:
+            self.x += self.speed
+            self.y += self.speed
+        elif self.movement == "down_right" \
+                and self.y + (self.image.get_height() / 2) >= self.settings.screen_height:
+            self.movement = random.choice(["up_left", "up", "up_right"])
+        elif self.movement == "down_right" \
+                and self.x + (self.image.get_width() / 2) >= self.settings.screen_width:
+            self.movement = random.choice(["up_left", "left", "down_left"])
+
+        if self.movement == "down_left" \
+                and self.y + (self.image.get_height() / 2) < self.settings.screen_height \
+                and self.x - (self.image.get_width() / 2) > 0:
+            self.x -= self.speed
+            self.y += self.speed
+        elif self.movement == "down_left" \
+                and self.y + (self.image.get_height() / 2) >= self.settings.screen_height:
+            self.movement = random.choice(["up_left", "up", "up_right"])
+        elif self.movement == "down_left" \
+                and self.x - (self.image.get_width() / 2) >= 0:
+            self.movement = random.choice(["up_right", "right", "down_right"])
+
+        if self.movement == "right" and self.x + (self.image.get_width() / 2) < self.settings.screen_width:
+            self.x += self.speed
+        elif self.movement == "right" and self.x + (self.image.get_width() / 2) >= self.settings.screen_width:
+            self.movement = random.choice(["up_left", "left", "down_left"])
+
+        if self.movement == "left" and self.x - (self.image.get_width() / 2) > 0:
+            self.x -= self.speed
+        elif self.movement == "left" and self.x - (self.image.get_width() / 2) <= 0:
+            self.movement = random.choice(["up_right", "right", "down_right"])
+
+    # # TODO: Update animation
+    # def update_animation(self):
+    #     # Change the animation's index after a short time.
+    #     # Update image depending on current action and frame index
+    #     self.image = self.animation_list[self.action][self.frame_index]
+    #     # Animation cooldown
+    #     if self.action == 0:
+    #         self.animation_cooldown = 500
+    #     else:
+    #         self.animation_cooldown = 100
+    #     # Check if enough time has passed since the last update
+    #     if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
+    #         # Reset the animation timer
+    #         self.update_time = pygame.time.get_ticks()
+    #         # Add 1 to frame index to choose the next animation frame
+    #         self.frame_index += 1
+    #     # If the animation list for current action has run out of frames,
+    #     # reset frame index back to 0
+    #     if self.frame_index >= len(self.animation_list[self.action]):
+    #         self.frame_index = 0
+
+    # Draw the character on the screen
+    def draw(self, screen):
+        self.rect.center = vec(self.x, self.y)
+        screen.blit(self.image, self.rect)
+
+
+# ARROW CLASS
 class Arrow(pygame.sprite.Sprite):
     # Create the constructor for the Bullet class
     # (args: x, y -> coordinates,
