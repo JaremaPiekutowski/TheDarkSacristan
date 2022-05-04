@@ -5,15 +5,22 @@
 # 3. Character (class Character)
 # 4. Character moving
 # 5. Character animation
+# 6. Character shooting
 
 # TODO:
-#  6. Shooting
-#  7. First level - tiles (?), enemies, collisions
-#  8. Other levels
-#  9. Music and sound effects
-#  10. Outro
-#  11. Convert to .exe
-#  12. Further improvements incl. better OOP, parts to files etc.
+#  - Draw enemy sprites - the Cthulhu dogs (ca. 3 frames), Small Cthulhus, Bishops, Big Cthulhus, The Great Cthulhu
+#  - Create Enemy class (inheriting from the Character class?) with mechanics of enemy movements
+#     for the 5 levels of 3 waves and necessary methods (move, collision detection);
+#  - Introduce enemies in-game;
+#  - Introduce healthbar and scoring
+#  - Create title screen
+#  - Create intro (3 pictures and text, fading to black)
+#  - Create five level cutscenes (fading to black)
+#  - Introduce music (make chiptunes)
+#  - Introduce sound effects
+#  - Convert to .exe
+#  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
+#    better OOP, parts to files etc. if necessary
 
 # IMPORT NECESSARY MODULES
 import pygame
@@ -41,6 +48,8 @@ class Game:
         self.clock = pygame.time.Clock()
         # Instantiate player
         self.player = Character(100, 100)
+        # Create arrow group
+        self.arrow_group = pygame.sprite.Group()
         # Set level
         self.level = 0
 
@@ -63,26 +72,20 @@ class Game:
             self.player.update()
             # Draw player
             self.player.draw(self.screen)
+            # Update arrow group
+            self.arrow_group.update()
+            # Draw arrow group
+            self.arrow_group.draw(self.screen)
+            # Shoot if player shoots
+            if self.player.shooting:
+                self.player.shoot(self.arrow_group)
 
-            # TODO: update and draw enemies and bullets
+            # TODO: update and draw enemies
 
-            # Update action. TODO: shouldn't it be a function?
-            if self.player.moving_up:
-                self.player.update_action(1)
-            elif self.player.moving_right:
-                self.player.update_action(2)
-            elif self.player.moving_down:
-                self.player.update_action(3)
-            elif self.player.moving_left:
-                self.player.update_action(4)
-            else:
-                self.player.update_action(0)
-
-            # Move player (TODO: it's provisional. There should be an update _and_ a move method in Player class)
+            # Move player
             if pygame.time.get_ticks() >= self.player.next_move:
                 self.player.move()
                 self.player.next_move = pygame.time.get_ticks() + 3
-
             # Update display
             pygame.display.update()
 
@@ -95,29 +98,29 @@ class Game:
         # Player control.
         # Are any keyboard buttons pressed?
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    self.player.moving_left = True
-                if event.key == pygame.K_RIGHT:
-                    self.player.moving_right = True
                 if event.key == pygame.K_UP:
                     self.player.moving_up = True
                 if event.key == pygame.K_DOWN:
                     self.player.moving_down = True
-                if event.key == pygame.K_z:
+                if event.key == pygame.K_LEFT:
+                    self.player.moving_left = True
+                if event.key == pygame.K_RIGHT:
+                    self.player.moving_right = True
+                if event.key == pygame.K_z and self.player.shoot_cooldown == 0:
                     self.player.shooting = True
                 # Quitting by Esc key
                 if event.key == pygame.K_ESCAPE:
                     self.settings.run = False
             # Are any keyboard buttons released?
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
-                    self.player.moving_left = False
-                if event.key == pygame.K_RIGHT:
-                    self.player.moving_right = False
                 if event.key == pygame.K_UP:
                     self.player.moving_up = False
                 if event.key == pygame.K_DOWN:
                     self.player.moving_down = False
+                if event.key == pygame.K_LEFT:
+                    self.player.moving_left = False
+                if event.key == pygame.K_RIGHT:
+                    self.player.moving_right = False
                 if event.key == pygame.K_z:
                     self.player.shooting = False
 
@@ -148,6 +151,8 @@ class Character(pygame.sprite.Sprite):
         self.health = 10
         # Set max health
         self.max_health = 10
+        # Set shoot direction
+        self.shoot_direction = 180
         # Initialize an empty animation list
         self.animation_list = []
         # Set frame index
@@ -191,9 +196,23 @@ class Character(pygame.sprite.Sprite):
 
     # Update the state of the character
     def update(self):
+        # Update action
+        if self.moving_up:
+            self.update_action(1)
+        elif self.moving_down:
+            self.update_action(3)
+        elif self.moving_right:
+            self.update_action(2)
+        elif self.moving_left:
+            self.update_action(4)
+        else:
+            self.update_action(0)
         # Update animation
         self.update_animation()
-        # TODO: Check if alive, decrease the shoot cooldown counter etc.
+        # Decrease shoot cooldown counter
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
+        # TODO: Check if alive
 
     # Update the action of character
     def update_action(self, new_action):
@@ -218,22 +237,45 @@ class Character(pygame.sprite.Sprite):
         if self.moving_right and (self.x + (self.image.get_width() / 2)) < self.settings.screen_width:
             self.x += self.speed
 
-    # TODO: Define a method for shooting arrows
-    def shoot(self):
+    # Shoot arrows
+    def shoot(self, arrow_group):
         # Shoot arrows - instantiate Bullet next to the barrel of the gun
         # Check if the cooldown counter == 0 and ammo > 0
+        # TODO: disable autofire (not very important)
         if self.shoot_cooldown == 0:
             # Set cooldown counter to 20 (it will decrease then)
-            self.shoot_cooldown = 20
-            # # TODO: ARROWS AND SHOOTING
-            # # centerx, centery -> the middle of the player
-            # # player.rect.size[0] -> width of the player
-            # # the player.direction is 1 or -1
-            # arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction),
-            #                 self.rect.centery,
-            #                 self.direction)
-            # # Add the bullet to the bullet group
-            # arrow_group.add(arrow)
+            self.shoot_cooldown = 300
+            self.shoot_direction = self.get_shoot_direction()
+            # Create arrow
+            # centerx, centery -> the middle of the player
+            # player.rect.size[0] -> width of the player
+            # the player.direction is 1 or -1
+            arrow = Arrow(self.rect.centerx,
+                          self.rect.centery,
+                          self.shoot_direction)
+            # Add the arrow to the arrow group
+            arrow_group.add(arrow)
+
+    # Get shooding direction
+    def get_shoot_direction(self):
+        if self.moving_up and not self.moving_left and not self.moving_right:
+            return 0
+        elif self.moving_up and self.moving_left:
+            return 45
+        elif self.moving_left and not self.moving_up and not self.moving_down:
+            return 90
+        elif self.moving_down and self.moving_left:
+            return 135
+        elif self.moving_down and not self.moving_right and not self.moving_left:
+            return 180
+        elif self.moving_down and self.moving_right:
+            return 225
+        elif self.moving_right and not self.moving_down and not self.moving_up:
+            return 270
+        elif self.moving_right and self.moving_up:
+            return 315
+        else:
+            return 180
 
     # Update animation
     def update_animation(self):
@@ -262,44 +304,57 @@ class Character(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
-# TODO: CREATE CLASS ARROW; KEEP IN MIND THAT ONLY THE PLAYER USES THE BULLETS
 class Arrow(pygame.sprite.Sprite):
     # Create the constructor for the Bullet class
     # (args: x, y -> coordinates,
-    #        direction -> where the bullet goes TODO: ANGLE AND SUITABLE ARROW IMAGE)
+    #        direction -> angle
     def __init__(self, x, y, direction):
         # Initialize Sprite
         super().__init__()
-
-        # # So it was in the tutorial:
-        # pygame.sprite.Sprite.__init__(self)
-
         # Set settings
         self.settings = Settings()
         # Set speed (in this case all bullets have the same speed)
-        self.speed = 10
-
-        # TODO: Define image - according to the direction!
-        #  Presumably a list of images will be necessary,
-        #  just like with the player's animation list.
-        self.image = pygame.image.load(f'assets/arrow.png').convert_alpha()
-
-        # Create rectangle for bullet
+        self.speed = 1
+        # Set direction
+        self.direction = direction
+        # Set next move
+        self.next_move = pygame.time.get_ticks() + 2
+        # Set arrow image (pointing at proper direction)
+        upright_arrow = pygame.image.load(f'assets/arrow.png').convert_alpha()
+        self.image = pygame.transform.rotate(upright_arrow, self.direction)
+        # Create rectangle for the arrow
         self.rect = self.image.get_rect()
         # Set position of the rectangle's center
         self.rect.center = (x, y)
-        # Set direction
-        self.direction = direction
 
     def update(self):
-
         # Move bullet left, right, up, down or diagonally at the bullet's speed
-        # TODO: Everything should be done actually
-        self.rect.x += (self.speed * self.direction)
+        if pygame.time.get_ticks() >= self.next_move:
+            self.next_move = pygame.time.get_ticks() + 2
+            if self.direction == 0:
+                self.rect.y -= self.speed
+            if self.direction == 45:
+                self.rect.y -= self.speed
+                self.rect.x -= self.speed
+            if self.direction == 90:
+                self.rect.x -= self.speed
+            if self.direction == 135:
+                self.rect.x -= self.speed
+                self.rect.y += self.speed
+            if self.direction == 180:
+                self.rect.y += self.speed
+            if self.direction == 225:
+                self.rect.y += self.speed
+                self.rect.x += self.speed
+            if self.direction == 270:
+                self.rect.x += self.speed
+            if self.direction == 315:
+                self.rect.x += self.speed
+                self.rect.y -= self.speed
 
         # Check if bullet has gone off screen
-        # TODO: Up and down screen edge
-        if self.rect.right < 0 or self.rect.left > self.settings.screen_width:
+        if self.rect.right < 0 or self.rect.left > self.settings.screen_width or self.rect.bottom < 0 or \
+                self.rect.top > self.settings.screen_height:
             # Delete the bullet, if it's off screen
             # The method .kill is inherited from the Sprite class
             self.kill()
@@ -307,13 +362,14 @@ class Arrow(pygame.sprite.Sprite):
         # Check collision of the bullet with player
         # TODO: update all this. How to pass in a player object? Is it really a good idea?
         #  See some tutorials on bullet shooting to solve this problem.
+        #  Maybe the collision check should be in the Game class? It seems so!
         # Args: sprite -> sprite which collides
         #       group -> group of sprites to collide with
         #       dokill -> remove automatically each collided sprite from the group
         # NOTE: mask not used! Collides with rect (to improve later)
         # If the bullet hits the player:
         # if pygame.sprite.spritecollide(sprite=player, # TODO: ???
-        #                                group=bullet_group, # TODO: ???
+        #                                group=arrow_group, # TODO: ???
         #                                dokill=False):
         #     # If the player is alive:
         #     if player.alive:
