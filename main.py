@@ -1,29 +1,35 @@
 # CZARNY ZAKRYSTIANIN / THE DARK SACRISTAN
 # DONE:
 # 1. Screen
-# 2. Basic game mechanics (class Game)
+# 2. Basic game mechanics, main loop (class Game)
 # 3. Character (class Character)
 # 4. Character moving
 # 5. Character animation
 # 6. Character shooting
 # 7. Class Enemy
-# 8. Introduce the first enemy
+# 8. Add the first enemy
+# 9. Add provisional collision detection between player and enemy
+# 10. Add death animation and GAME OVER label
 
 # TODO:
-#  - Draw enemy sprites (ca. 2 frames each,size=32x32):
-#       - the Cthulhu dogs: scale=2, health=1, waves: (4, 6, 8) - 1 frame
-#       - Small Cthulhus: scale=1 health=1, waves: (8, 10, 12) - 2 frames
+#  - Create title screen and main menu;
+#  - Draw next enemy sprites (ca. 2 frames each,size=32x32):
+#       - Small Cthulhus: 2 frames
+#       - Dzhiengas: 2 frames
+#       - Big Cthulhus: 2 frames
+#       - The Great Cthulhu: 2/3 frames
+#  - Add levels;
+#       - the Cthulhu dogs: scale=2, health=1, waves: (1, 2, 4)
+#       - Small Cthulhus: scale=1 health=1, waves: (4, 6, 8) - 2 frames
 #       - Dzhiengas: scale=2, health=2 (changing colour after shoot or healthbar), waves: (4, 6, 8)  - 2 frames
 #       - Big Cthulhus: scale=2, health=3 (a.a.), waves: (4, 6, 8) - 2 frames
 #       - The Great Cthulhu: scale=4/5, health=20, one wave - 2/3 frames
-#  - Add necessary methods to the Enemy class (animations, cooldowns, collision)
-#  - Add collision detection to Player and Arrow;
-#  - Add Enemy and Player hurt/death scenes;
-#  - Add healthbar for the player;
-#  - Add healthbars for enemies (?)
+#  - Add enemy groups for the next levels
+#  - Add collision detection to Arrow;
+#  - Add Enemy hurt/death scenes;
+#  - Add healthbar for the player (if necessary?);
+#  - Add healthbars for enemies (? maybe color change will do);
 #  - Add scoring system and score labels;
-#  - Add levels;
-#  - Create title screen;
 #  - Create intro (3 pictures and text, fading to black)
 #  - Create five level cutscenes (fading to black)
 #  - Create outro
@@ -35,11 +41,11 @@
 #  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
 #    better OOP (an abstract class Character should be created!), parts to files, disable autofire,
 #    create collectibles, different weapons, more levels, high score table etc. if necessary.
+#
 #    In the further levels maybe there could be a bigger probability that the enemies approach the player,
 #    instead of just wandering at random, which can be achieved using weighed probabilities (random.choices())
+#
 #    The links should be created using the os.join() method to provide work under all OS's.
-
-
 
 # IMPORT NECESSARY MODULES
 import pygame
@@ -70,9 +76,13 @@ class Game:
         # Create arrow group
         self.arrow_group = pygame.sprite.Group()
         # Create enemy
-        self.enemy = Enemy(150, 150)
+        self.enemy = Enemy(500, 500)
         # Set level
         self.level = 0
+        # Set font for game over
+        self.game_over_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
+        # Set game over label
+        self.game_over_label = self.game_over_font.render("GAME OVER", True, (0, 0, 0))
 
     # Draw the background
     def draw_background(self):
@@ -100,19 +110,33 @@ class Game:
             # Shoot if player shoots
             if self.player.shooting:
                 self.player.shoot(self.arrow_group)
+            # Update enemy animation
+            self.enemy.update_animation()
             # Move enemy
-            self.enemy.move()
+            if pygame.time.get_ticks() >= self.enemy.next_move:
+                self.enemy.move()
+                self.enemy.next_move = pygame.time.get_ticks() + 3
             # Draw enemy
             self.enemy.draw(self.screen)
 
             # TODO: update and draw enemy group
 
             # Move player
-            if pygame.time.get_ticks() >= self.player.next_move:
+            if pygame.time.get_ticks() >= self.player.next_move and self.player.alive:
                 self.player.move()
                 self.player.next_move = pygame.time.get_ticks() + 3
+            # Check collision of player with the enemy
+            self.check_collisions()
+            # TODO: PROVISIONAL Check for game over
+            if not self.player.alive:
+                # Blit the game over label
+                self.screen.blit(self.game_over_label,
+                                 (self.settings.screen_width/2 - self.game_over_label.get_width()/2,
+                                  self.settings.screen_height/2 - self.game_over_label.get_height()/2))
             # Update display
             pygame.display.update()
+
+
 
     # Event listener
     def check_events(self):
@@ -120,8 +144,8 @@ class Game:
             # Check for quitting
             if event.type == pygame.QUIT:
                 self.settings.run = False
-        # Player control.
-        # Are any keyboard buttons pressed?
+            # Player control.
+            # Are any keyboard buttons pressed?
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     self.player.moving_up = True
@@ -148,6 +172,10 @@ class Game:
                     self.player.moving_right = False
                 if event.key == pygame.K_z:
                     self.player.shooting = False
+
+    def check_collisions(self):
+        if pygame.sprite.collide_rect(self.player, self.enemy):
+            self.player.alive = False
 
 
 # CLASS CHARACTER
@@ -185,8 +213,8 @@ class Character(pygame.sprite.Sprite):
         # Set next move time
         self.next_move = pygame.time.get_ticks() + 3
         # Set action
-        # (0 - idle, 1 - moving up, 2 - moving right,
-        #  3 - moving left, 4 - moving right, TODO: 5 - dead)
+        # (0 - idle, 1 - moving up, 2 - moving down,
+        #  3 - moving left, 4 - moving right, 5 - dead)
         self.action = 0
         # Set animation cooldown
         self.animation_cooldown = 100
@@ -197,7 +225,7 @@ class Character(pygame.sprite.Sprite):
 
         # Create a list of lists for animation
         # Create a dictionary of animation types
-        animation_types = {"idle": 4, "up": 4, "right": 5, "down": 4, "left": 5}
+        animation_types = {"idle": 4, "up": 4, "right": 5, "down": 4, "left": 5, "dead": 6}
         # Iterate over dictionary
         for key, value in animation_types.items():
             # Create/reset a temporary list of frames
@@ -222,16 +250,19 @@ class Character(pygame.sprite.Sprite):
     # Update the state of the character
     def update(self):
         # Update action
-        if self.moving_up:
-            self.update_action(1)
-        elif self.moving_down:
-            self.update_action(3)
-        elif self.moving_right:
-            self.update_action(2)
-        elif self.moving_left:
-            self.update_action(4)
+        if self.alive:
+            if self.moving_up:
+                self.update_action(1)
+            elif self.moving_down:
+                self.update_action(3)
+            elif self.moving_right:
+                self.update_action(2)
+            elif self.moving_left:
+                self.update_action(4)
+            else:
+                self.update_action(0)
         else:
-            self.update_action(0)
+            self.update_action(5)
         # Update animation
         self.update_animation()
         # Decrease shoot cooldown counter
@@ -250,6 +281,8 @@ class Character(pygame.sprite.Sprite):
             self.frame_index = 0
             # Set current time as the update time
             self.update_time = pygame.time.get_ticks()
+
+    # TODO: Check if the character is alive
 
     # Move the character
     def move(self):
@@ -320,8 +353,11 @@ class Character(pygame.sprite.Sprite):
             self.frame_index += 1
         # If the animation list for current action has run out of frames,
         # reset frame index back to 0
-        if self.frame_index >= len(self.animation_list[self.action]):
+        if self.frame_index >= len(self.animation_list[self.action]) and self.action != 5:
             self.frame_index = 0
+        elif self.frame_index >= len(self.animation_list[self.action]) and self.action == 5:
+            self.frame_index = len(self.animation_list[self.action]) - 1
+
 
     # Draw the character on the screen
     def draw(self, screen):
@@ -353,52 +389,35 @@ class Enemy(pygame.sprite.Sprite):
         self.max_health = 10
         # Set next move time
         self.next_move = pygame.time.get_ticks() + 3
+        # Set animation cooldown
+        self.animation_cooldown = 100
         # Set scale
         self.scale = scale
+        # Set animation list
+        self.animation_list = []
+        # Set frame index
+        self.frame_index = 0
+        # Set update time
+        self.update_time = pygame.time.get_ticks()
 
-        # # TODO: Initialize an empty animation list
-        # self.animation_list = []
-
-        # # TODO: Set frame index
-        # self.frame_index = 0
-
-        # TODO: Set action
-        # (0 - idle, 1 - moving up, 2 - moving right,
-        #  3 - moving left, 4 - moving right, TODO: 5 - dead)
+        # TODO: Set action (explode?)
         # self.action = 0
 
-        # TODO: Set animation cooldown
-        # self.animation_cooldown = 100
+        # Create a list for animation
+        # TODO: Create a list of lists for different levels like in Character class
+        #       Range 2 is provisional (for the Cthulhu dog)
+        for frame_number in range(2):
+            # Load i-th image from the specified directory
+            img = pygame.image.load(f'assets/lev1_{frame_number}.png').convert_alpha()
+            # Transform the image according to the scale
+            img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
+                                               int(img.get_height() * self.scale)))
+            # Add the image to the list as the next frame
+            self.animation_list.append(img)
 
-        # TODO: Set update time for updating animation (get baseline for animation sequence)
-        # self.update_time = pygame.time.get_ticks()
+        # Set character image TODO: CURRENTLY PROVISIONAL (with only Cthulhu Dog)
+        self.image = self.animation_list[self.frame_index]
 
-        # TODO: Create a list of lists (OR LIST?) for animation
-        # # Create a dictionary of animation types
-        # animation_types = {"idle": 4, "up": 4, "right": 5, "down": 4, "left": 5}
-        # # Iterate over dictionary
-        # for key, value in animation_types.items():
-        #     # Create/reset a temporary list of frames
-        #     current_frame_list = []
-        #     # Iterate over the frames from the current animation
-        #     for frame_number in range(value):
-        #         # Load i-th image from the specified directory
-        #         img = pygame.image.load(f'assets/player_{key}_{frame_number}.png').convert_alpha()
-        #         # Transform the image according to the scale
-        #         img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
-        #                                            int(img.get_height() * self.scale)))
-        #         # Add the image to the list as the next frame
-        #         current_frame_list.append(img)
-        #     # Append the temporary frame list to the animation list of lists
-        #     self.animation_list.append(current_frame_list)
-
-        # Set character image
-        # TODO: from the animation list
-        # self.image = self.animation_list[self.action][self.frame_index]
-        # CURRENTLY: PROVISIONAL
-        enemy_image = pygame.image.load(f'assets/lev1_0.png').convert_alpha()
-        self.image = pygame.transform.scale(enemy_image, (int(enemy_image.get_width() * self.scale),
-                                                          int(enemy_image.get_height() * self.scale)))
         # Get rectangle
         self.rect = self.image.get_rect()
 
@@ -436,10 +455,6 @@ class Enemy(pygame.sprite.Sprite):
 
     # Move the character
     def move(self):
-        print(f"\nMovement: {self.movement}")
-        print(f"X: {self.x}")
-        print(f"Y: {self.y}")
-
         # Movement up
         if self.movement == "up" and self.y - (self.image.get_height() / 2) > 0:
             self.y -= self.speed
@@ -515,26 +530,22 @@ class Enemy(pygame.sprite.Sprite):
         elif self.movement == "left" and self.x - (self.image.get_width() / 2) <= 0:
             self.movement = random.choice(["up_right", "right", "down_right"])
 
-    # # TODO: Update animation
-    # def update_animation(self):
-    #     # Change the animation's index after a short time.
-    #     # Update image depending on current action and frame index
-    #     self.image = self.animation_list[self.action][self.frame_index]
-    #     # Animation cooldown
-    #     if self.action == 0:
-    #         self.animation_cooldown = 500
-    #     else:
-    #         self.animation_cooldown = 100
-    #     # Check if enough time has passed since the last update
-    #     if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
-    #         # Reset the animation timer
-    #         self.update_time = pygame.time.get_ticks()
-    #         # Add 1 to frame index to choose the next animation frame
-    #         self.frame_index += 1
-    #     # If the animation list for current action has run out of frames,
-    #     # reset frame index back to 0
-    #     if self.frame_index >= len(self.animation_list[self.action]):
-    #         self.frame_index = 0
+    # Update animation
+    def update_animation(self):
+        # Change the animation's index after a short time.
+        # Update image depending on current action and frame index
+        self.image = self.animation_list[self.frame_index]
+        # Check if enough time has passed since the last update
+        if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
+            # Reset the animation timer
+            self.update_time = pygame.time.get_ticks()
+            # Add 1 to frame index to choose the next animation frame
+            self.frame_index += 1
+        # If the animation list for current action has run out of frames,
+        # reset frame index back to 0
+        # TODO: in the future it can be changed to: len(self.animation_list[level]) or in some other way
+        if self.frame_index >= len(self.animation_list):
+            self.frame_index = 0
 
     # Draw the character on the screen
     def draw(self, screen):
