@@ -2,10 +2,11 @@
 # DONE:
 # 1. Screen
 # 2. Basic game mechanics, main loop (class Game)
-# 3. Character (class Character)
-# 4. Character moving
-# 5. Character animation
-# 6. Character shooting
+# 3. Player (class Player)
+# 4. Player sprites
+# 4. Player moving
+# 5. Player animation
+# 6. Player shooting
 # 7. Class Enemy
 # 8. Add the first enemy
 # 9. Add provisional collision detection between player and enemy
@@ -39,7 +40,7 @@
 #  - Convert to .exe
 
 #  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
-#    better OOP (an abstract class Character should be created!), parts to files, disable autofire,
+#    better OOP (an abstract class Player should be created!), parts to files, disable autofire,
 #    create collectibles, different weapons, more levels, high score table etc. if necessary.
 #
 #    In the further levels maybe there could be a bigger probability that the enemies approach the player,
@@ -72,7 +73,7 @@ class Game:
         # Set the game clock
         self.clock = pygame.time.Clock()
         # Instantiate player
-        self.player = Character(100, 100)
+        self.player = Player(100, 100)
         # Create arrow group
         self.arrow_group = pygame.sprite.Group()
         # Create enemy
@@ -178,8 +179,8 @@ class Game:
             self.player.alive = False
 
 
-# CLASS CHARACTER
-class Character(pygame.sprite.Sprite):
+# CLASS PLAYER
+class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, scale=2):
         # Initialize the parent Sprite class
         super().__init__()
@@ -242,12 +243,12 @@ class Character(pygame.sprite.Sprite):
             # Append the temporary frame list to the animation list of lists
             self.animation_list.append(current_frame_list)
 
-        # Set character image
+        # Set player image
         self.image = self.animation_list[self.action][self.frame_index]
         # Get rectangle
         self.rect = self.image.get_rect()
 
-    # Update the state of the character
+    # Update the state of the player
     def update(self):
         # Update action
         if self.alive:
@@ -270,7 +271,7 @@ class Character(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
         # TODO: Check if alive
 
-    # Update the action of character
+    # Update the action of the player
     def update_action(self, new_action):
         # Check if the new action is different than the previous one
         # And if so - set new action
@@ -282,9 +283,9 @@ class Character(pygame.sprite.Sprite):
             # Set current time as the update time
             self.update_time = pygame.time.get_ticks()
 
-    # TODO: Check if the character is alive
+    # TODO: Check if the player is alive (?)
 
-    # Move the character
+    # Move the player
     def move(self):
         if self.moving_up and (self.y - (self.image.get_height() / 2)) > 0:
             self.y -= self.speed
@@ -359,7 +360,7 @@ class Character(pygame.sprite.Sprite):
             self.frame_index = len(self.animation_list[self.action]) - 1
 
 
-    # Draw the character on the screen
+    # Draw the player on the screen
     def draw(self, screen):
         self.rect.center = vec(self.x, self.y)
         screen.blit(self.image, self.rect)
@@ -404,7 +405,7 @@ class Enemy(pygame.sprite.Sprite):
         # self.action = 0
 
         # Create a list for animation
-        # TODO: Create a list of lists for different levels like in Character class
+        # TODO: Create a list of lists for different levels like in Player class
         #       Range 2 is provisional (for the Cthulhu dog)
         for frame_number in range(2):
             # Load i-th image from the specified directory
@@ -415,13 +416,13 @@ class Enemy(pygame.sprite.Sprite):
             # Add the image to the list as the next frame
             self.animation_list.append(img)
 
-        # Set character image TODO: CURRENTLY PROVISIONAL (with only Cthulhu Dog)
+        # Set enemy image TODO: CURRENTLY PROVISIONAL (with only Cthulhu Dog)
         self.image = self.animation_list[self.frame_index]
 
         # Get rectangle
         self.rect = self.image.get_rect()
 
-    # # TODO: Update the state of the character
+    # # TODO: Update the state of the enemy
     # def update(self):
     #     # Update action
     #     if self.moving_up:
@@ -441,7 +442,7 @@ class Enemy(pygame.sprite.Sprite):
     #         self.shoot_cooldown -= 1
     #     # TODO: Check if alive
 
-    # # TODO: Update the action of character
+    # # TODO: Update the action of enemy
     # def update_action(self, new_action):
     #     # Check if the new action is different than the previous one
     #     # And if so - set new action
@@ -453,7 +454,7 @@ class Enemy(pygame.sprite.Sprite):
     #         # Set current time as the update time
     #         self.update_time = pygame.time.get_ticks()
 
-    # Move the character
+    # Move the enemy
     def move(self):
         # Movement up
         if self.movement == "up" and self.y - (self.image.get_height() / 2) > 0:
@@ -547,7 +548,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.frame_index >= len(self.animation_list):
             self.frame_index = 0
 
-    # Draw the character on the screen
+    # Draw the enemy on the screen
     def draw(self, screen):
         self.rect.center = vec(self.x, self.y)
         screen.blit(self.image, self.rect)
