@@ -8,40 +8,35 @@
 # 5. Player animation
 # 6. Player shooting
 # 7. Class Enemy
-# 8. Add the first enemy
-# 9. Add provisional collision detection between player and enemy
-# 10. Add death animation and GAME OVER label
+# 8. The first enemy
+# 9. Collision detection between player and enemy
+# 10. Death animation and GAME OVER label
+# 11. A provisional title screen
+# 12. Drawn images of all enemies
+# 13. Provisional enemy death scene
+# 14. Collision arrow/enemy
+# 15. Level cutscenes added (provisional)
 
 # TODO:
-#  - Create title screen and main menu;
-#  - Draw next enemy sprites (ca. 2 frames each,size=32x32):
-#       - Small Cthulhus: 2 frames
-#       - Dzhiengas: 2 frames
-#       - Big Cthulhus: 2 frames
-#       - The Great Cthulhu: 2/3 frames
-#  - Add levels;
-#       - the Cthulhu dogs: scale=2, health=1, waves: (1, 2, 4)
-#       - Small Cthulhus: scale=1 health=1, waves: (4, 6, 8) - 2 frames
-#       - Dzhiengas: scale=2, health=2 (changing colour after shoot or healthbar), waves: (4, 6, 8)  - 2 frames
-#       - Big Cthulhus: scale=2, health=3 (a.a.), waves: (4, 6, 8) - 2 frames
-#       - The Great Cthulhu: scale=4/5, health=20, one wave - 2/3 frames
-#  - Add enemy groups for the next levels
-#  - Add collision detection to Arrow;
-#  - Add Enemy hurt/death scenes;
-#  - Add healthbar for the player (if necessary?);
-#  - Add healthbars for enemies (? maybe color change will do);
-#  - Add scoring system and score labels;
+#  - PROBLEM: THE GAME DOESN'T RUN AGAIN AFTER GAME OVER (SEEMS AT LAST IT WORKS! CHECK)
+#  - Do a better death animation
+#  - Add health system for the player and enemies
+#  - Add healthbar for the player;
+#  - Add healthbar for the enemy;
+#  - Create final title screen with a picture;
 #  - Create intro (3 pictures and text, fading to black)
 #  - Create five level cutscenes (fading to black)
 #  - Create outro
 #  - Create game over scene
 #  - Introduce music (make chiptunes)
 #  - Introduce sound effects
+#  - Check for provisional solutions
 #  - Convert to .exe
 
 #  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
 #    better OOP (an abstract class Player should be created!), parts to files, disable autofire,
-#    create collectibles, different weapons, more levels, high score table etc. if necessary.
+#    create collectibles, different weapons, more levels, high score table, full screen mode,
+#    waves, enemy groups etc. if necessary.
 #
 #    In the further levels maybe there could be a bigger probability that the enemies approach the player,
 #    instead of just wandering at random, which can be achieved using weighed probabilities (random.choices())
@@ -65,41 +60,54 @@ class Game:
     def __init__(self):
         # Get settings
         self.settings = Settings()
+        # Set the game clock
+        self.clock = pygame.time.Clock()
         # Set up the screen
         self.screen = pygame.display.set_mode((self.settings.screen_width,
                                                self.settings.screen_height))
         # Set the caption
         pygame.display.set_caption("Czarny Zakrystianin")
-        # Set the game clock
-        self.clock = pygame.time.Clock()
         # Instantiate player
         self.player = Player(100, 100)
         # Create arrow group
         self.arrow_group = pygame.sprite.Group()
-        # Create enemy
-        self.enemy = Enemy(500, 500)
         # Set level
         self.level = 0
+        # Create enemy
+        self.enemy = Enemy(500, 500, self.level)
         # Set font for game over
         self.game_over_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
         # Set game over label
         self.game_over_label = self.game_over_font.render("GAME OVER", True, (0, 0, 0))
+        # Set game over cooldown
+        self.game_over_cooldown = 0
+        # Set if new level starts
+        self.new_level_starts = True
 
     # Draw the background
-    def draw_background(self):
-        self.screen.fill(self.settings.screen_color)
+    def draw_background(self, color):
+        self.screen.fill(color)
 
     # Run the game
     def run(self):
+        # Set level
+        self.level = 0
+
         # Set the clock for 60 frames per second
         self.clock.tick(self.settings.fps)
 
+        # Main menu
+        self.main_menu()
+
         # Main loop
-        while self.settings.run:
+        while self.settings.game_run:
+            # Listen for level beginnings
+            if self.new_level_starts:
+                self.new_level_setting()
             # Listen for events
             self.check_events()
             # Draw background
-            self.draw_background()
+            self.draw_background(self.settings.game_screen_color)
             # Update player
             self.player.update()
             # Draw player
@@ -109,19 +117,28 @@ class Game:
             # Draw arrow group
             self.arrow_group.draw(self.screen)
             # Shoot if player shoots
-            if self.player.shooting:
+            if self.player.alive and self.player.shooting:
                 self.player.shoot(self.arrow_group)
             # Update enemy animation
             self.enemy.update_animation()
             # Move enemy
-            if pygame.time.get_ticks() >= self.enemy.next_move:
+            if pygame.time.get_ticks() >= self.enemy.next_move and self.enemy.alive:
                 self.enemy.move()
                 self.enemy.next_move = pygame.time.get_ticks() + 3
             # Draw enemy
-            self.enemy.draw(self.screen)
-
-            # TODO: update and draw enemy group
-
+            if self.enemy.alive:
+                self.enemy.draw(self.screen)
+            elif not self.enemy.explosion_coooldown_over:
+                self.enemy.update_animation()
+                self.enemy.draw(self.screen)
+            elif not self.enemy.alive and self.enemy.explosion_coooldown_over:
+                self.player.kill()
+                for arrow in self.arrow_group:
+                    arrow.kill()
+                self.new_level_starts = True
+                if self.level < 4:
+                    self.level += 1
+                # TODO: PROVISIONAL. DO: "ELSE -> OUTRO" IN THE FUTURE.
             # Move player
             if pygame.time.get_ticks() >= self.player.next_move and self.player.alive:
                 self.player.move()
@@ -129,54 +146,136 @@ class Game:
             # Check collision of player with the enemy
             self.check_collisions()
             # TODO: PROVISIONAL Check for game over
-            if not self.player.alive:
-                # Blit the game over label
-                self.screen.blit(self.game_over_label,
-                                 (self.settings.screen_width/2 - self.game_over_label.get_width()/2,
-                                  self.settings.screen_height/2 - self.game_over_label.get_height()/2))
+            if not self.player.alive and self.player.death_animation_over:
+                self.game_over()
+                print("Game over over")
             # Update display
             pygame.display.update()
-
-
 
     # Event listener
     def check_events(self):
         for event in pygame.event.get():
             # Check for quitting
             if event.type == pygame.QUIT:
-                self.settings.run = False
+                self.settings.game_run = False
             # Player control.
             # Are any keyboard buttons pressed?
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    self.player.moving_up = True
-                if event.key == pygame.K_DOWN:
-                    self.player.moving_down = True
-                if event.key == pygame.K_LEFT:
-                    self.player.moving_left = True
-                if event.key == pygame.K_RIGHT:
-                    self.player.moving_right = True
-                if event.key == pygame.K_z and self.player.shoot_cooldown == 0:
-                    self.player.shooting = True
-                # Quitting by Esc key
-                if event.key == pygame.K_ESCAPE:
-                    self.settings.run = False
-            # Are any keyboard buttons released?
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_UP:
-                    self.player.moving_up = False
-                if event.key == pygame.K_DOWN:
-                    self.player.moving_down = False
-                if event.key == pygame.K_LEFT:
-                    self.player.moving_left = False
-                if event.key == pygame.K_RIGHT:
-                    self.player.moving_right = False
-                if event.key == pygame.K_z:
-                    self.player.shooting = False
+            if self.player.alive:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        self.player.moving_up = True
+                    if event.key == pygame.K_DOWN:
+                        self.player.moving_down = True
+                    if event.key == pygame.K_LEFT:
+                        self.player.moving_left = True
+                    if event.key == pygame.K_RIGHT:
+                        self.player.moving_right = True
+                    if event.key == pygame.K_z and self.player.shoot_cooldown == 0:
+                        self.player.shooting = True
+                    # Quitting by Esc key
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                # Are any keyboard buttons released?
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_UP:
+                        self.player.moving_up = False
+                    if event.key == pygame.K_DOWN:
+                        self.player.moving_down = False
+                    if event.key == pygame.K_LEFT:
+                        self.player.moving_left = False
+                    if event.key == pygame.K_RIGHT:
+                        self.player.moving_right = False
+                    if event.key == pygame.K_z:
+                        self.player.shooting = False
 
     def check_collisions(self):
-        if pygame.sprite.collide_rect(self.player, self.enemy):
+        # Collision of player and enemy
+        if pygame.sprite.collide_rect(self.player, self.enemy) and self.player.alive and self.enemy.alive:
             self.player.alive = False
+            self.game_over_cooldown = pygame.time.get_ticks() + 4000
+
+        # Collision of arrow group and enemy
+        colliding_arrows_list = pygame.sprite.spritecollide(self.enemy, self.arrow_group, dokill=True)
+        if len(colliding_arrows_list) != 0:
+            self.enemy.die()
+
+    def main_menu(self):
+        # Set font for labels on the title screen
+        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        # Loop for the main menu
+        main_menu_run = True
+        while main_menu_run:
+            # Put labels on the screen
+            title_label = title_font.render("CZARNY ZAKRYSTIANIN", True, (255, 0, 0))
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.blit(title_label, (self.settings.screen_width / 2 - title_label.get_width() / 2,
+                                           self.settings.screen_height * 0.2))
+            self.screen.blit(pushbutton_label, (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                                                self.settings.screen_height * 0.8))
+            # Update display
+            pygame.display.update()
+            # Listen for events. Start game if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    main_menu_run = False
+                if event.type == pygame.KEYDOWN:
+                    main_menu_run = False
+
+    def level_cutscene(self, level):
+        # Set font for labels on the title screen
+        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        # Loop for the main menu
+        level_cutscene_run = True
+        while level_cutscene_run:
+            # Background fill
+            self.screen.fill((0, 0, 0))
+            # Put labels on the screen
+            title_label = title_font.render(f"LEVEL {level + 1}", True, (255, 0, 0))
+            # TODO: PROVISIONAL, AN IMAGE SHOULD BE THERE!
+            image_provisional_label = title_font.render("IMAGE IN PROGRESS", True, (46, 224, 150))
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.blit(title_label,
+                             (self.settings.screen_width / 2 - title_label.get_width() / 2,
+                              self.settings.screen_height * 0.2))
+            self.screen.blit(image_provisional_label,
+                             (self.settings.screen_width / 2 - image_provisional_label.get_width() / 2,
+                              self.settings.screen_height * 0.5))
+            self.screen.blit(pushbutton_label,
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.8))
+            # Update display
+            pygame.display.update()
+            # Listen for events. Start game if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    level_cutscene_run = False
+                if event.type == pygame.KEYDOWN:
+                    level_cutscene_run = False
+
+    def new_level_setting(self):
+        self.level_cutscene(self.level)
+        self.enemy = Enemy(x=500, y=500, level=self.level)
+        self.new_level_starts = False
+
+    def game_over(self):
+        if pygame.time.get_ticks() < self.game_over_cooldown:
+            self.screen.blit(self.game_over_label,
+                             (self.settings.screen_width / 2 - self.game_over_label.get_width() / 2,
+                              self.settings.screen_height * 0.5))
+        else:
+            self.player.kill()
+            self.enemy.kill()
+            for arrow in self.arrow_group:
+                arrow.kill()
+            self.draw_background((0, 0, 0))
+            pygame.display.update()
+            self.player.alive = True
+
+            self.main_menu()
 
 
 # CLASS PLAYER
@@ -215,7 +314,9 @@ class Player(pygame.sprite.Sprite):
         self.next_move = pygame.time.get_ticks() + 3
         # Set action
         # (0 - idle, 1 - moving up, 2 - moving down,
-        #  3 - moving left, 4 - moving right, 5 - dead)
+        #  3 - moving left, 4 - moving right, 5 - dead TODO: CHANGE,
+        #  6 - up right, 7 - down right, 8 - down left, 9 - up left)
+        # THERE SHOULD ACTUALLY BE FOUR "IDLES": FACING UP, RIGHT, DOWN AND LEFT
         self.action = 0
         # Set animation cooldown
         self.animation_cooldown = 100
@@ -223,6 +324,8 @@ class Player(pygame.sprite.Sprite):
         self.scale = scale
         # Set update time for updating animation (get baseline for animation sequence)
         self.update_time = pygame.time.get_ticks()
+        # Set death animation cooldown
+        self.death_animation_over = False
 
         # Create a list of lists for animation
         # Create a dictionary of animation types
@@ -243,6 +346,24 @@ class Player(pygame.sprite.Sprite):
             # Append the temporary frame list to the animation list of lists
             self.animation_list.append(current_frame_list)
 
+        # Add the same images ("up" and "down") for diagonal movement
+        # TODO: I know it's stupid but I do it only for time purposes
+        animation_types_diagonal = {"up": 4, "down": 4}
+        for _ in range(2):
+            for key, value in animation_types_diagonal.items():
+                current_frame_list = []
+                # Iterate over the frames from the current animation
+                for frame_number in range(value):
+                    # Load i-th image from the specified directory
+                    img = pygame.image.load(f'assets/player_{key}_{frame_number}.png').convert_alpha()
+                    # Transform the image according to the scale
+                    img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
+                                                       int(img.get_height() * self.scale)))
+                    # Add the image to the list as the next frame
+                    current_frame_list.append(img)
+                # Append the temporary frame list to the animation list of lists
+                self.animation_list.append(current_frame_list)
+
         # Set player image
         self.image = self.animation_list[self.action][self.frame_index]
         # Get rectangle
@@ -252,24 +373,32 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         # Update action
         if self.alive:
-            if self.moving_up:
+            if self.moving_up and not self.moving_left and not self.moving_right:
                 self.update_action(1)
-            elif self.moving_down:
+            elif self.moving_up and self.moving_right:
+                self.update_action(6)
+            elif self.moving_up and self.moving_left:
+                self.update_action(9)
+            elif self.moving_down and not self.moving_left and not self.moving_right:
                 self.update_action(3)
-            elif self.moving_right:
+            elif self.moving_down and self.moving_right:
+                self.update_action(7)
+            elif self.moving_down and self.moving_left:
+                self.update_action(8)
+            elif self.moving_right and not self.moving_up and not self.moving_down:
                 self.update_action(2)
-            elif self.moving_left:
+            elif self.moving_left and not self.moving_up and not self.moving_down:
                 self.update_action(4)
-            else:
-                self.update_action(0)
         else:
             self.update_action(5)
-        # Update animation
-        self.update_animation()
+        if not self.moving_up and not self.moving_down and not self.moving_right \
+                and not self.moving_left and not self.action == 0 and self.alive:
+            self.image = self.animation_list[self.action][0]
+        else:
+            self.update_animation()
         # Decrease shoot cooldown counter
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
-        # TODO: Check if alive
 
     # Update the action of the player
     def update_action(self, new_action):
@@ -300,7 +429,6 @@ class Player(pygame.sprite.Sprite):
     def shoot(self, arrow_group):
         # Shoot arrows - instantiate Bullet next to the barrel of the gun
         # Check if the cooldown counter == 0 and ammo > 0
-        # TODO: disable autofire (not very important)
         if self.shoot_cooldown == 0:
             # Set cooldown counter to 20 (it will decrease then)
             self.shoot_cooldown = 300
@@ -313,25 +441,28 @@ class Player(pygame.sprite.Sprite):
                           self.rect.centery,
                           self.shoot_direction)
             # Add the arrow to the arrow group
+            # TODO: SHOULDN'T THE ARROW GROUP BE AN ATTRIBUTE OF THE PLAYER?
             arrow_group.add(arrow)
+            # Set shooting to False to prevent shooting more than one arrow
+            self.shooting = False
 
     # Get shooding direction
     def get_shoot_direction(self):
-        if self.moving_up and not self.moving_left and not self.moving_right:
+        if self.action == 1:  # if self.moving_up and not self.moving_left and not self.moving_right:
             return 0
-        elif self.moving_up and self.moving_left:
+        elif self.action == 9:
             return 45
-        elif self.moving_left and not self.moving_up and not self.moving_down:
+        elif self.action == 4:
             return 90
-        elif self.moving_down and self.moving_left:
+        elif self.action == 8:
             return 135
-        elif self.moving_down and not self.moving_right and not self.moving_left:
+        elif self.action == 3:
             return 180
-        elif self.moving_down and self.moving_right:
+        elif self.action == 7:
             return 225
-        elif self.moving_right and not self.moving_down and not self.moving_up:
+        elif self.action == 2:
             return 270
-        elif self.moving_right and self.moving_up:
+        elif self.action == 6:
             return 315
         else:
             return 180
@@ -352,13 +483,13 @@ class Player(pygame.sprite.Sprite):
             self.update_time = pygame.time.get_ticks()
             # Add 1 to frame index to choose the next animation frame
             self.frame_index += 1
-        # If the animation list for current action has run out of frames,
+        # If the animation list for current action has game_run out of frames,
         # reset frame index back to 0
         if self.frame_index >= len(self.animation_list[self.action]) and self.action != 5:
             self.frame_index = 0
         elif self.frame_index >= len(self.animation_list[self.action]) and self.action == 5:
             self.frame_index = len(self.animation_list[self.action]) - 1
-
+            self.death_animation_over = True
 
     # Draw the player on the screen
     def draw(self, screen):
@@ -368,16 +499,21 @@ class Player(pygame.sprite.Sprite):
 
 # ENEMY CLASS
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, scale=3):
+    def __init__(self, x, y, level):
         # Initialize the parent Sprite class
         super().__init__()
+        # Set position
+        self.x = x
+        self.y = y
+        # Set level
+        self.level = level
+        # Set scale based on a level/scale dictionary
+        level_scale_dict = {0: 2, 1: 3, 2: 4, 3: 4, 4: 5}
+        self.scale = level_scale_dict[level]
         # Get settings
         self.settings = Settings()
         # Check if alive
         self.alive = True
-        # Set position
-        self.x = x
-        self.y = y
         # Set move list
         self.move_list = ["up", "up_right", "right", "down_right", "down", "down_left", "left", "up_left"]
         # Set first movement
@@ -392,67 +528,37 @@ class Enemy(pygame.sprite.Sprite):
         self.next_move = pygame.time.get_ticks() + 3
         # Set animation cooldown
         self.animation_cooldown = 100
-        # Set scale
-        self.scale = scale
         # Set animation list
         self.animation_list = []
+        # TODO: IT'S PROVISIONAL Set death image
+        dead_img = pygame.image.load("assets/enm_dead.png").convert_alpha()
+        dead_img = pygame.transform.scale(dead_img, (int(dead_img.get_width() * self.scale),
+                                                     int(dead_img.get_height() * self.scale)))
         # Set frame index
         self.frame_index = 0
         # Set update time
         self.update_time = pygame.time.get_ticks()
-
-        # TODO: Set action (explode?)
-        # self.action = 0
-
+        # Set explosion cooldown over marker
+        self.explosion_coooldown_over = False
         # Create a list for animation
-        # TODO: Create a list of lists for different levels like in Player class
-        #       Range 2 is provisional (for the Cthulhu dog)
-        for frame_number in range(2):
-            # Load i-th image from the specified directory
-            img = pygame.image.load(f'assets/lev1_{frame_number}.png').convert_alpha()
-            # Transform the image according to the scale
-            img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
-                                               int(img.get_height() * self.scale)))
-            # Add the image to the list as the next frame
-            self.animation_list.append(img)
-
-        # Set enemy image TODO: CURRENTLY PROVISIONAL (with only Cthulhu Dog)
-        self.image = self.animation_list[self.frame_index]
-
+        for level in range(5):
+            temp_list = []
+            for frame_number in range(3):
+                # Load i-th image from the specified directory
+                img = pygame.image.load(f'assets/lev{level+1}_{frame_number}.png').convert_alpha()
+                # Transform the image according to the scale
+                img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
+                                                   int(img.get_height() * self.scale)))
+                # Add the image to the list as the next frame
+                temp_list.append(img)
+            self.animation_list.append(temp_list)
+        # Append dead animation at the end (sublist 5)
+        # TODO: it's provisional! A full hit/death animation should be included
+        self.animation_list.append([dead_img])
+        # Set enemy image
+        self.image = self.animation_list[self.level][self.frame_index]
         # Get rectangle
         self.rect = self.image.get_rect()
-
-    # # TODO: Update the state of the enemy
-    # def update(self):
-    #     # Update action
-    #     if self.moving_up:
-    #         self.update_action(1)
-    #     elif self.moving_down:
-    #         self.update_action(3)
-    #     elif self.moving_right:
-    #         self.update_action(2)
-    #     elif self.moving_left:
-    #         self.update_action(4)
-    #     else:
-    #         self.update_action(0)
-    #     # Update animation
-    #     self.update_animation()
-    #     # Decrease shoot cooldown counter
-    #     if self.shoot_cooldown > 0:
-    #         self.shoot_cooldown -= 1
-    #     # TODO: Check if alive
-
-    # # TODO: Update the action of enemy
-    # def update_action(self, new_action):
-    #     # Check if the new action is different than the previous one
-    #     # And if so - set new action
-    #     if new_action != self.action:
-    #         self.action = new_action
-    #         # Update animation settings
-    #         # Reset frame index to 0
-    #         self.frame_index = 0
-    #         # Set current time as the update time
-    #         self.update_time = pygame.time.get_ticks()
 
     # Move the enemy
     def move(self):
@@ -535,18 +641,36 @@ class Enemy(pygame.sprite.Sprite):
     def update_animation(self):
         # Change the animation's index after a short time.
         # Update image depending on current action and frame index
-        self.image = self.animation_list[self.frame_index]
+        # TODO: PROVISIONAL DEATH ANIMATION HAS BEEN MADE, A BETTER ONE SHOULD BE MADE
+        # Change self image
+        if self.alive:
+            self.image = self.animation_list[self.level][self.frame_index]
+        else:
+            self.image = self.animation_list[5][0]
         # Check if enough time has passed since the last update
         if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
-            # Reset the animation timer
-            self.update_time = pygame.time.get_ticks()
-            # Add 1 to frame index to choose the next animation frame
-            self.frame_index += 1
-        # If the animation list for current action has run out of frames,
+            # TODO: PROVISIONAL!
+            if not self.alive:
+                self.kill()
+                self.explosion_coooldown_over = True
+            else:
+                # Reset the animation timer
+                self.update_time = pygame.time.get_ticks()
+                # Add 1 to frame index to choose the next animation frame
+                self.frame_index += 1
+        # If the animation list for current action has game_run out of frames,
         # reset frame index back to 0
         # TODO: in the future it can be changed to: len(self.animation_list[level]) or in some other way
-        if self.frame_index >= len(self.animation_list):
+        if self.frame_index >= len(self.animation_list[self.level]):
             self.frame_index = 0
+
+    # Check if the enemy is dead TODO: PROVISIONAL!
+    def die(self):
+        self.alive = False
+        self.image = self.animation_list[5]
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+        self.animation_cooldown = 3000
 
     # Draw the enemy on the screen
     def draw(self, screen):
@@ -610,37 +734,8 @@ class Arrow(pygame.sprite.Sprite):
             # The method .kill is inherited from the Sprite class
             self.kill()
 
-        # Check collision of the bullet with player
-        # TODO: update all this. How to pass in a player object? Is it really a good idea?
-        #  See some tutorials on bullet shooting to solve this problem.
-        #  Maybe the collision check should be in the Game class? It seems so!
-        # Args: sprite -> sprite which collides
-        #       group -> group of sprites to collide with
-        #       dokill -> remove automatically each collided sprite from the group
-        # NOTE: mask not used! Collides with rect (to improve later)
-        # If the bullet hits the player:
-        # if pygame.sprite.spritecollide(sprite=player, # TODO: ???
-        #                                group=arrow_group, # TODO: ???
-        #                                dokill=False):
-        #     # If the player is alive:
-        #     if player.alive:
-        #         # Decrease player's health by 5
-        #         player.health -= 5
-        #         # Delete bullet
-        #         self.kill()
-        # # Check collision of the bullet with enemy
-        # if pygame.sprite.spritecollide(sprite=enemy,
-        #                                group=bullet_group,
-        #                                dokill=False):
-        #     # Delete bullet if the enemy is alive
-        #     if enemy.alive:
-        #         # Decrease enemy health by 25
-        #         enemy.health -= 25
-        #         # Delete bullet
-        #         self.kill()
-
 
 # RUN GAME
-game = Game()
 if __name__ == "__main__":
+    game = Game()
     game.run()
