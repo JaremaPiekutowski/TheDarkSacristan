@@ -26,7 +26,6 @@
 #  - Create instructions screen;
 #  - Create intro (3 pictures and text, fading to black)
 #  - Create five level cutscenes (fading to black)
-#  - Create outro
 #  - Check for provisional solutions
 #  - Convert to .exe
 
@@ -78,6 +77,7 @@ class Game:
         self.game_over_label = self.game_over_font.render("GAME OVER", True, (0, 0, 0))
         # Set font for health
         self.health_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 20)
+
         # Set game over cooldown
         self.game_over_cooldown = 0
         # Set if new level starts
@@ -85,9 +85,9 @@ class Game:
 
     # Draw the background
     def draw_background(self, color):
+        print(self.enemy.health)
         self.screen.fill(color)
-        self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)),
-                         (2, 2))
+        self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)), (2, 2))
 
     # Run the game
     def run(self):
@@ -125,7 +125,7 @@ class Game:
             # Move enemy
             if pygame.time.get_ticks() >= self.enemy.next_move and self.enemy.alive:
                 self.enemy.move()
-                self.enemy.next_move = pygame.time.get_ticks() + 3
+                self.enemy.next_move = pygame.time.get_ticks() + self.enemy.level_move_delay_dict[self.enemy.level]
             # Draw enemy
             if self.enemy.alive:
                 self.enemy.draw(self.screen)
@@ -141,7 +141,8 @@ class Game:
                 self.new_level_starts = True
                 if self.level < 4:
                     self.level += 1
-                # TODO: PROVISIONAL. DO: "ELSE -> OUTRO" IN THE FUTURE.
+                else:
+                    self.ending()
             # Move player
             if pygame.time.get_ticks() >= self.player.next_move and self.player.alive:
                 self.player.move()
@@ -255,8 +256,8 @@ class Game:
                              (self.settings.screen_width / 2 - image_provisional_label.get_width() / 2,
                               self.settings.screen_height * 0.5))
             self.screen.blit(pushbutton_label,
-                                 (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
-                                  self.settings.screen_height * 0.9))
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.9))
             pygame.display.update()
             # Listen for events. Start game if any key is pressed
             for event in pygame.event.get():
@@ -298,6 +299,41 @@ class Game:
             self.player.moving_right = False
             self.player.shooting = False
             self.main_menu()
+
+    # Game ending
+    def ending(self):
+        # Set font for labels on the title screen
+        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        game_ending_run = True
+        self.screen.fill((10, 20, 10))
+        pygame.display.update()
+        pygame.time.delay(1000)
+        while game_ending_run:
+            # Background fill
+            self.screen.fill((10, 20, 10))
+            # Put labels on the screen
+            title_label = title_font.render(f"WYGRALES!!!", True, (255, 0, 0))
+            image_provisional_label = title_font.render("IMAGE IN PROGRESS", True, (46, 224, 150))
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.blit(title_label,
+                             (self.settings.screen_width / 2 - title_label.get_width() / 2,
+                              self.settings.screen_height * 0.2))
+            self.screen.blit(image_provisional_label,
+                             (self.settings.screen_width / 2 - image_provisional_label.get_width() / 2,
+                              self.settings.screen_height * 0.5))
+            self.screen.blit(pushbutton_label,
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.9))
+            pygame.display.update()
+            # Listen for events. Start game if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    game_ending_run = False
+                if event.type == pygame.KEYDOWN:
+                    game_ending_run = False
+        self.main_menu()
 
 
 # CLASS PLAYER
@@ -530,8 +566,8 @@ class Enemy(pygame.sprite.Sprite):
         # Set level
         self.level = level
         # Set scale based on a level/scale dictionary
-        level_scale_dict = {0: 5, 1: 6, 2: 6, 3: 6, 4: 7}
-        self.scale = level_scale_dict[self.level]
+        self.level_scale_dict = {0: 5, 1: 5, 2: 4, 3: 6, 4: 7}
+        self.scale = self.level_scale_dict[self.level]
         # Get settings
         self.settings = Settings()
         # Check if alive
@@ -544,12 +580,12 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = 1
         # Set if hit
         self.hit = False
-        # Set health
-        self.health = 3
-        # Set max health
-        self.max_health = 10
-        # Set next move time
-        self.next_move = pygame.time.get_ticks() + 3
+        # Set health based on a level/health dictionary
+        self.level_health_dict = {0: 3, 1: 5, 2: 8, 3: 10, 4: 12}
+        self.health = self.level_health_dict[self.level]
+        # Set next move time based on level
+        self.level_move_delay_dict = {0: 5, 1: 4, 2: 3, 3: 2, 4: 3}
+        self.next_move = pygame.time.get_ticks() + self.level_move_delay_dict[self.level]
         # Set animation cooldown
         self.animation_cooldown = 100
         # Set animation list
