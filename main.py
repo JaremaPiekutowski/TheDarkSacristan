@@ -16,20 +16,17 @@
 # 13. Provisional enemy death scene
 # 14. Collision arrow/enemy
 # 15. Level cutscenes added (provisional)
+# 16. Health system added
+# 17. Hit and death animations introduced
 
 # TODO:
-#  - PROBLEM: THE GAME DOESN'T RUN AGAIN AFTER GAME OVER (SEEMS AT LAST IT WORKS! CHECK)
-#  - Do a better death animation
-#  - Add health system for the player and enemies
-#  - Add healthbar for the player;
-#  - Add healthbar for the enemy;
+#  - Introduce music (make chiptunes)
+#  - Introduce sound effects
 #  - Create final title screen with a picture;
+#  - Create instructions screen;
 #  - Create intro (3 pictures and text, fading to black)
 #  - Create five level cutscenes (fading to black)
 #  - Create outro
-#  - Create game over scene
-#  - Introduce music (make chiptunes)
-#  - Introduce sound effects
 #  - Check for provisional solutions
 #  - Convert to .exe
 
@@ -67,18 +64,20 @@ class Game:
                                                self.settings.screen_height))
         # Set the caption
         pygame.display.set_caption("Czarny Zakrystianin")
+        # Set level
+        self.level = 0
         # Instantiate player
         self.player = Player(100, 100)
         # Create arrow group
         self.arrow_group = pygame.sprite.Group()
-        # Set level
-        self.level = 0
         # Create enemy
-        self.enemy = Enemy(500, 500, self.level)
+        self.enemy = Enemy(700, 300, self.level)
         # Set font for game over
         self.game_over_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
         # Set game over label
         self.game_over_label = self.game_over_font.render("GAME OVER", True, (0, 0, 0))
+        # Set font for health
+        self.health_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 20)
         # Set game over cooldown
         self.game_over_cooldown = 0
         # Set if new level starts
@@ -87,6 +86,8 @@ class Game:
     # Draw the background
     def draw_background(self, color):
         self.screen.fill(color)
+        self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)),
+                         (2, 2))
 
     # Run the game
     def run(self):
@@ -128,9 +129,11 @@ class Game:
             # Draw enemy
             if self.enemy.alive:
                 self.enemy.draw(self.screen)
-            elif not self.enemy.explosion_coooldown_over:
+            # ...or draw enemy explosion
+            elif not self.enemy.alive and not self.enemy.explosion_coooldown_over:
                 self.enemy.update_animation()
                 self.enemy.draw(self.screen)
+            # ...or go to the  next level
             elif not self.enemy.alive and self.enemy.explosion_coooldown_over:
                 self.player.kill()
                 for arrow in self.arrow_group:
@@ -148,7 +151,6 @@ class Game:
             # TODO: PROVISIONAL Check for game over
             if not self.player.alive and self.player.death_animation_over:
                 self.game_over()
-                print("Game over over")
             # Update display
             pygame.display.update()
 
@@ -189,15 +191,19 @@ class Game:
                         self.player.shooting = False
 
     def check_collisions(self):
+        # Collision of arrow group and enemy
+        colliding_arrows_list = pygame.sprite.spritecollide(self.enemy, self.arrow_group, dokill=True)
+        if len(colliding_arrows_list) != 0:
+            self.enemy.hit = True
+            self.enemy.frame_index = 0
+            self.enemy.health -= 1
+            if self.enemy.health == 0:
+                self.enemy.die()
+
         # Collision of player and enemy
         if pygame.sprite.collide_rect(self.player, self.enemy) and self.player.alive and self.enemy.alive:
             self.player.alive = False
             self.game_over_cooldown = pygame.time.get_ticks() + 4000
-
-        # Collision of arrow group and enemy
-        colliding_arrows_list = pygame.sprite.spritecollide(self.enemy, self.arrow_group, dokill=True)
-        if len(colliding_arrows_list) != 0:
-            self.enemy.die()
 
     def main_menu(self):
         # Set font for labels on the title screen
@@ -221,14 +227,19 @@ class Game:
                     self.settings.game_run = False
                     main_menu_run = False
                 if event.type == pygame.KEYDOWN:
+                    print("Key pressed!")
                     main_menu_run = False
 
     def level_cutscene(self, level):
         # Set font for labels on the title screen
         title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
         pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
-        # Loop for the main menu
         level_cutscene_run = True
+        self.screen.fill((0, 0, 0))
+        pygame.display.update()
+        print("Started new cutscene")
+        pygame.time.delay(1000)
+        print("After delay")
         while level_cutscene_run:
             # Background fill
             self.screen.fill((0, 0, 0))
@@ -244,9 +255,8 @@ class Game:
                              (self.settings.screen_width / 2 - image_provisional_label.get_width() / 2,
                               self.settings.screen_height * 0.5))
             self.screen.blit(pushbutton_label,
-                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
-                              self.settings.screen_height * 0.8))
-            # Update display
+                                 (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                                  self.settings.screen_height * 0.9))
             pygame.display.update()
             # Listen for events. Start game if any key is pressed
             for event in pygame.event.get():
@@ -258,7 +268,13 @@ class Game:
 
     def new_level_setting(self):
         self.level_cutscene(self.level)
-        self.enemy = Enemy(x=500, y=500, level=self.level)
+        self.enemy = Enemy(x=700, y=300, level=self.level)
+        self.player = Player(x=100, y=100)
+        self.player.moving_up = False
+        self.player.moving_down = False
+        self.player.moving_left = False
+        self.player.moving_right = False
+        self.player.shooting = False
         self.new_level_starts = False
 
     def game_over(self):
@@ -273,8 +289,14 @@ class Game:
                 arrow.kill()
             self.draw_background((0, 0, 0))
             pygame.display.update()
-            self.player.alive = True
-
+            self.player = Player(100, 100)
+            self.level = 0
+            self.new_level_starts = True
+            self.player.moving_up = False
+            self.player.moving_down = False
+            self.player.moving_left = False
+            self.player.moving_right = False
+            self.player.shooting = False
             self.main_menu()
 
 
@@ -315,7 +337,7 @@ class Player(pygame.sprite.Sprite):
         # Set action
         # (0 - idle, 1 - moving up, 2 - moving down,
         #  3 - moving left, 4 - moving right, 5 - dead TODO: CHANGE,
-        #  6 - up right, 7 - down right, 8 - down left, 9 - up left)
+        #  6 - up right, 7 - up left, 8 - down right, 9 - down left)
         # THERE SHOULD ACTUALLY BE FOUR "IDLES": FACING UP, RIGHT, DOWN AND LEFT
         self.action = 0
         # Set animation cooldown
@@ -375,20 +397,20 @@ class Player(pygame.sprite.Sprite):
         if self.alive:
             if self.moving_up and not self.moving_left and not self.moving_right:
                 self.update_action(1)
-            elif self.moving_up and self.moving_right:
-                self.update_action(6)
-            elif self.moving_up and self.moving_left:
-                self.update_action(9)
-            elif self.moving_down and not self.moving_left and not self.moving_right:
-                self.update_action(3)
-            elif self.moving_down and self.moving_right:
-                self.update_action(7)
-            elif self.moving_down and self.moving_left:
-                self.update_action(8)
             elif self.moving_right and not self.moving_up and not self.moving_down:
                 self.update_action(2)
+            elif self.moving_down and not self.moving_left and not self.moving_right:
+                self.update_action(3)
             elif self.moving_left and not self.moving_up and not self.moving_down:
                 self.update_action(4)
+            elif self.moving_up and self.moving_right:
+                self.update_action(6)
+            elif self.moving_down and self.moving_right:
+                self.update_action(7)
+            elif self.moving_up and self.moving_left:
+                self.update_action(8)
+            elif self.moving_down and self.moving_left:
+                self.update_action(9)
         else:
             self.update_action(5)
         if not self.moving_up and not self.moving_down and not self.moving_right \
@@ -451,11 +473,11 @@ class Player(pygame.sprite.Sprite):
         if self.action == 1:  # if self.moving_up and not self.moving_left and not self.moving_right:
             return 0
         elif self.action == 9:
-            return 45
+            return 135
         elif self.action == 4:
             return 90
         elif self.action == 8:
-            return 135
+            return 45
         elif self.action == 3:
             return 180
         elif self.action == 7:
@@ -508,8 +530,8 @@ class Enemy(pygame.sprite.Sprite):
         # Set level
         self.level = level
         # Set scale based on a level/scale dictionary
-        level_scale_dict = {0: 2, 1: 3, 2: 4, 3: 4, 4: 5}
-        self.scale = level_scale_dict[level]
+        level_scale_dict = {0: 5, 1: 6, 2: 6, 3: 6, 4: 7}
+        self.scale = level_scale_dict[self.level]
         # Get settings
         self.settings = Settings()
         # Check if alive
@@ -520,8 +542,10 @@ class Enemy(pygame.sprite.Sprite):
         self.movement = random.choice(self.move_list)
         # Set speed
         self.speed = 1
+        # Set if hit
+        self.hit = False
         # Set health
-        self.health = 10
+        self.health = 3
         # Set max health
         self.max_health = 10
         # Set next move time
@@ -530,10 +554,10 @@ class Enemy(pygame.sprite.Sprite):
         self.animation_cooldown = 100
         # Set animation list
         self.animation_list = []
-        # TODO: IT'S PROVISIONAL Set death image
-        dead_img = pygame.image.load("assets/enm_dead.png").convert_alpha()
-        dead_img = pygame.transform.scale(dead_img, (int(dead_img.get_width() * self.scale),
-                                                     int(dead_img.get_height() * self.scale)))
+        # Set hit animation list
+        self.hit_animation_list = []
+        # Set dead animation list
+        self.dead_animation_list = []
         # Set frame index
         self.frame_index = 0
         # Set update time
@@ -545,16 +569,37 @@ class Enemy(pygame.sprite.Sprite):
             temp_list = []
             for frame_number in range(3):
                 # Load i-th image from the specified directory
-                img = pygame.image.load(f'assets/lev{level+1}_{frame_number}.png').convert_alpha()
+                img = pygame.image.load(f'assets/lev{level + 1}_{frame_number}.png').convert_alpha()
                 # Transform the image according to the scale
                 img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
                                                    int(img.get_height() * self.scale)))
                 # Add the image to the list as the next frame
                 temp_list.append(img)
             self.animation_list.append(temp_list)
-        # Append dead animation at the end (sublist 5)
-        # TODO: it's provisional! A full hit/death animation should be included
-        self.animation_list.append([dead_img])
+        # Append hit animations
+        for level in range(5):
+            temp_list = []
+            for frame_number in range(3):
+                # Load i-th image from the specified directory
+                img = pygame.image.load(f'assets/hitlev{level + 1}_{frame_number}.png').convert_alpha()
+                # Transform the image according to the scale
+                img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
+                                                   int(img.get_height() * self.scale)))
+                # Add the image to the list as the next frame
+                temp_list.append(img)
+            self.hit_animation_list.append(temp_list)
+        # Append death animations
+        for level in range(5):
+            temp_list = []
+            for frame_number in range(3):
+                # Load i-th image from the specified directory
+                img = pygame.image.load(f'assets/deadlev{level + 1}_{frame_number}.png').convert_alpha()
+                # Transform the image according to the scale
+                img = pygame.transform.scale(img, (int(img.get_width() * self.scale),
+                                                   int(img.get_height() * self.scale)))
+                # Add the image to the list as the next frame
+                temp_list.append(img)
+            self.dead_animation_list.append(temp_list)
         # Set enemy image
         self.image = self.animation_list[self.level][self.frame_index]
         # Get rectangle
@@ -562,115 +607,83 @@ class Enemy(pygame.sprite.Sprite):
 
     # Move the enemy
     def move(self):
-        # Movement up
-        if self.movement == "up" and self.y - (self.image.get_height() / 2) > 0:
-            self.y -= self.speed
-        elif self.movement == "up" and self.y - (self.image.get_height() / 2) <= 0:
+        # Check if hits wall
+        if self.y - self.speed - (self.image.get_height() / 2) <= 0:
             self.movement = random.choice(["down_left", "down", "down_right"])
-
-        # Movement up-right
-        if self.movement == "up_right" \
-                and self.y - (self.image.get_height() / 2) > 0 \
-                and self.x + (self.image.get_width() / 2) < self.settings.screen_width:
+        if self.y + self.speed + (self.image.get_height() / 2) > self.settings.screen_height:
+            self.movement = random.choice(["up_left", "up", "up_right"])
+        if self.x - self.speed - (self.image.get_width() / 2) <= 0:
+            self.movement = random.choice(["up_right", "right", "down_right"])
+        if self.x + self.speed + (self.image.get_width() / 2) > self.settings.screen_width:
+            self.movement = random.choice(["up_left", "left", "down_left"])
+        # Movement
+        if self.movement == "up_right":
             self.x += self.speed
             self.y -= self.speed
-        elif self.movement == "up_right" \
-                and self.y - (self.image.get_height() / 2) <= 0:
-            self.movement = random.choice(["down_left", "down", "down_right"])
-        elif self.movement == "up_right" \
-                and self.x + (self.image.get_width() / 2) <= self.settings.screen_width:
-            self.movement = random.choice(["up_left", "left", "down_left"])
-
-        # Movement up-left
-        if self.movement == "up_left" \
-                and self.y - (self.image.get_height() / 2) > 0 \
-                and self.x - (self.image.get_width() / 2) > 0:
+        elif self.movement == "up_left":
             self.x -= self.speed
             self.y -= self.speed
-        elif self.movement == "up_left" \
-                and self.y - (self.image.get_height() / 2) <= 0:
-            self.movement = random.choice(["down_left", "down", "down_right"])
-        elif self.movement == "up_left" \
-                and self.x - (self.image.get_width() / 2) <= 0:
-            self.movement = random.choice(["up_right", "right", "down_right"])
-
-        # Movement down
-        if self.movement == "down" \
-                and self.y + (self.image.get_height() / 2) < self.settings.screen_height:
-            self.y += self.speed
-        elif self.movement == "down" \
-                and self.y + (self.image.get_height() / 2) >= self.settings.screen_height:
-            self.movement = random.choice(["up_left", "up", "up_right"])
-
-        # Movement down-right
-        if self.movement == "down_right" \
-                and self.y + (self.image.get_height() / 2) < self.settings.screen_height \
-                and self.x + (self.image.get_width() / 2) < self.settings.screen_width:
+        elif self.movement == "down_right":
             self.x += self.speed
             self.y += self.speed
-        elif self.movement == "down_right" \
-                and self.y + (self.image.get_height() / 2) >= self.settings.screen_height:
-            self.movement = random.choice(["up_left", "up", "up_right"])
-        elif self.movement == "down_right" \
-                and self.x + (self.image.get_width() / 2) >= self.settings.screen_width:
-            self.movement = random.choice(["up_left", "left", "down_left"])
-
-        if self.movement == "down_left" \
-                and self.y + (self.image.get_height() / 2) < self.settings.screen_height \
-                and self.x - (self.image.get_width() / 2) > 0:
+        elif self.movement == "down_left":
             self.x -= self.speed
             self.y += self.speed
-        elif self.movement == "down_left" \
-                and self.y + (self.image.get_height() / 2) >= self.settings.screen_height:
-            self.movement = random.choice(["up_left", "up", "up_right"])
-        elif self.movement == "down_left" \
-                and self.x - (self.image.get_width() / 2) >= 0:
-            self.movement = random.choice(["up_right", "right", "down_right"])
-
-        if self.movement == "right" and self.x + (self.image.get_width() / 2) < self.settings.screen_width:
+        elif self.movement == "down":
+            self.y += self.speed
+        elif self.movement == "up":
+            self.y += self.speed
+        elif self.movement == "right":
             self.x += self.speed
-        elif self.movement == "right" and self.x + (self.image.get_width() / 2) >= self.settings.screen_width:
-            self.movement = random.choice(["up_left", "left", "down_left"])
-
-        if self.movement == "left" and self.x - (self.image.get_width() / 2) > 0:
+        elif self.movement == "left":
             self.x -= self.speed
-        elif self.movement == "left" and self.x - (self.image.get_width() / 2) <= 0:
-            self.movement = random.choice(["up_right", "right", "down_right"])
 
     # Update animation
     def update_animation(self):
+        # If the animation list for current action has game_run out of frames,
+        # reset frame index back to 0
+        # TODO: in the future it can be changed to: len(self.animation_list[level]) or in some other way
+        if self.frame_index >= len(self.animation_list[self.level]):
+            if self.alive and self.hit:
+                self.frame_index = 0
+                self.hit = False
+            if self.alive and not self.hit:
+                if self.frame_index >= len(self.hit_animation_list[self.level]):
+                    self.frame_index = 0
+            if not self.alive:
+                self.frame_index = len(self.dead_animation_list[self.level]) - 1
         # Change the animation's index after a short time.
         # Update image depending on current action and frame index
         # TODO: PROVISIONAL DEATH ANIMATION HAS BEEN MADE, A BETTER ONE SHOULD BE MADE
         # Change self image
-        if self.alive:
+        if self.alive and not self.hit:
             self.image = self.animation_list[self.level][self.frame_index]
-        else:
-            self.image = self.animation_list[5][0]
+        elif self.alive and self.hit:
+            self.image = self.hit_animation_list[self.level][self.frame_index]
+        if not self.alive:
+            self.image = self.dead_animation_list[self.level][self.frame_index]
         # Check if enough time has passed since the last update
         if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
             # TODO: PROVISIONAL!
             if not self.alive:
-                self.kill()
-                self.explosion_coooldown_over = True
+                # Add 1 to frame index to choose the next animation frame
+                self.frame_index += 1
+                if self.frame_index >= len(self.dead_animation_list[self.level]):
+                    self.frame_index = len(self.dead_animation_list)
+                    pygame.time.delay(1500)
+                    self.explosion_coooldown_over = True
             else:
                 # Reset the animation timer
                 self.update_time = pygame.time.get_ticks()
                 # Add 1 to frame index to choose the next animation frame
                 self.frame_index += 1
-        # If the animation list for current action has game_run out of frames,
-        # reset frame index back to 0
-        # TODO: in the future it can be changed to: len(self.animation_list[level]) or in some other way
-        if self.frame_index >= len(self.animation_list[self.level]):
-            self.frame_index = 0
 
     # Check if the enemy is dead TODO: PROVISIONAL!
     def die(self):
         self.alive = False
-        self.image = self.animation_list[5]
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
-        self.animation_cooldown = 3000
+        self.animation_cooldown = 200
 
     # Draw the enemy on the screen
     def draw(self, screen):
