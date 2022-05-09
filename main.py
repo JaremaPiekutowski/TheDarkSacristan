@@ -18,10 +18,10 @@
 # 15. Level cutscenes added (provisional)
 # 16. Health system added
 # 17. Hit and death animations introduced
+# 18. Sound effects introduced
+# 19. Music introduced
 
 # TODO:
-#  - Introduce music (make chiptunes)
-#  - Introduce sound effects
 #  - Create final title screen with a picture;
 #  - Create instructions screen;
 #  - Create intro (3 pictures and text, fading to black)
@@ -77,11 +77,12 @@ class Game:
         self.game_over_label = self.game_over_font.render("GAME OVER", True, (0, 0, 0))
         # Set font for health
         self.health_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 20)
-
         # Set game over cooldown
         self.game_over_cooldown = 0
         # Set if new level starts
         self.new_level_starts = True
+        # Game beginning sound
+        self.game_beginning_sound = pygame.mixer.Sound("assets/sound/key_pressed.wav")
 
     # Draw the background
     def draw_background(self, color):
@@ -142,6 +143,7 @@ class Game:
                 if self.level < 4:
                     self.level += 1
                 else:
+                    pygame.mixer.music.stop()
                     self.ending()
             # Move player
             if pygame.time.get_ticks() >= self.player.next_move and self.player.alive:
@@ -196,6 +198,7 @@ class Game:
         colliding_arrows_list = pygame.sprite.spritecollide(self.enemy, self.arrow_group, dokill=True)
         if len(colliding_arrows_list) != 0:
             self.enemy.hit = True
+            self.enemy.hit_sound.play()
             self.enemy.frame_index = 0
             self.enemy.health -= 1
             if self.enemy.health == 0:
@@ -204,6 +207,7 @@ class Game:
         # Collision of player and enemy
         if pygame.sprite.collide_rect(self.player, self.enemy) and self.player.alive and self.enemy.alive:
             self.player.alive = False
+            self.player.death_sound.play()
             self.game_over_cooldown = pygame.time.get_ticks() + 4000
 
     def main_menu(self):
@@ -229,6 +233,7 @@ class Game:
                     main_menu_run = False
                 if event.type == pygame.KEYDOWN:
                     print("Key pressed!")
+                    self.game_beginning_sound.play()
                     main_menu_run = False
 
     def level_cutscene(self, level):
@@ -266,8 +271,11 @@ class Game:
                     level_cutscene_run = False
                 if event.type == pygame.KEYDOWN:
                     level_cutscene_run = False
+        pygame.mixer.music.load(f'assets/sound/music_lev_{level+1}.mp3')
+        pygame.mixer.music.play(0)
 
     def new_level_setting(self):
+        pygame.mixer.music.stop()
         self.level_cutscene(self.level)
         self.enemy = Enemy(x=700, y=300, level=self.level)
         self.player = Player(x=100, y=100)
@@ -298,6 +306,7 @@ class Game:
             self.player.moving_left = False
             self.player.moving_right = False
             self.player.shooting = False
+            pygame.mixer.music.stop()
             self.main_menu()
 
     # Game ending
@@ -332,6 +341,8 @@ class Game:
                     self.settings.game_run = False
                     game_ending_run = False
                 if event.type == pygame.KEYDOWN:
+                    self.screen.fill((10, 20, 10))
+                    pygame.display.update()
                     game_ending_run = False
         self.main_menu()
 
@@ -384,7 +395,6 @@ class Player(pygame.sprite.Sprite):
         self.update_time = pygame.time.get_ticks()
         # Set death animation cooldown
         self.death_animation_over = False
-
         # Create a list of lists for animation
         # Create a dictionary of animation types
         animation_types = {"idle": 4, "up": 4, "right": 5, "down": 4, "left": 5, "dead": 6}
@@ -424,6 +434,10 @@ class Player(pygame.sprite.Sprite):
 
         # Set player image
         self.image = self.animation_list[self.action][self.frame_index]
+        # Set shoot sound effect
+        self.shoot_sound = pygame.mixer.Sound('assets/sound/arrow_shoot.wav')
+        # Set death sound effect
+        self.death_sound = pygame.mixer.Sound('assets/sound/game_die.mp3')
         # Get rectangle
         self.rect = self.image.get_rect()
 
@@ -501,6 +515,7 @@ class Player(pygame.sprite.Sprite):
             # Add the arrow to the arrow group
             # TODO: SHOULDN'T THE ARROW GROUP BE AN ATTRIBUTE OF THE PLAYER?
             arrow_group.add(arrow)
+            self.shoot_sound.play()
             # Set shooting to False to prevent shooting more than one arrow
             self.shooting = False
 
@@ -566,7 +581,7 @@ class Enemy(pygame.sprite.Sprite):
         # Set level
         self.level = level
         # Set scale based on a level/scale dictionary
-        self.level_scale_dict = {0: 5, 1: 5, 2: 4, 3: 6, 4: 7}
+        self.level_scale_dict = {0: 6, 1: 6, 2: 5, 3: 6, 4: 8}
         self.scale = self.level_scale_dict[self.level]
         # Get settings
         self.settings = Settings()
@@ -577,14 +592,15 @@ class Enemy(pygame.sprite.Sprite):
         # Set first movement
         self.movement = random.choice(self.move_list)
         # Set speed
-        self.speed = 1
+        self.level_speed_dict = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+        self.speed = self.level_speed_dict[self.level]
         # Set if hit
         self.hit = False
         # Set health based on a level/health dictionary
-        self.level_health_dict = {0: 3, 1: 5, 2: 8, 3: 10, 4: 12}
+        self.level_health_dict = {0: 5, 1: 8, 2: 10, 3: 12, 4: 15}
         self.health = self.level_health_dict[self.level]
-        # Set next move time based on level
-        self.level_move_delay_dict = {0: 5, 1: 4, 2: 3, 3: 2, 4: 3}
+        # Set next move time based on level #TODO: MAKE IT HARDER
+        self.level_move_delay_dict = {0: 5, 1: 5, 2: 5, 3: 5, 4: 5}
         self.next_move = pygame.time.get_ticks() + self.level_move_delay_dict[self.level]
         # Set animation cooldown
         self.animation_cooldown = 100
@@ -638,6 +654,10 @@ class Enemy(pygame.sprite.Sprite):
             self.dead_animation_list.append(temp_list)
         # Set enemy image
         self.image = self.animation_list[self.level][self.frame_index]
+        # Set hit sound
+        self.hit_sound = pygame.mixer.Sound("assets/sound/cthulhu_hit.wav")
+        # Set death sound
+        self.death_sound = pygame.mixer.Sound("assets/sound/cthulhu_cry.wav")
         # Get rectangle
         self.rect = self.image.get_rect()
 
@@ -720,6 +740,7 @@ class Enemy(pygame.sprite.Sprite):
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
         self.animation_cooldown = 200
+        self.death_sound.play()
 
     # Draw the enemy on the screen
     def draw(self, screen):
