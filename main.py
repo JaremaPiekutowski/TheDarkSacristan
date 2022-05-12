@@ -1,43 +1,18 @@
 # CZARNY ZAKRYSTIANIN / THE DARK SACRISTAN
-# DONE:
-# 1. Screen
-# 2. Basic game mechanics, main loop (class Game)
-# 3. Player (class Player)
-# 4. Player sprites
-# 4. Player moving
-# 5. Player animation
-# 6. Player shooting
-# 7. Class Enemy
-# 8. The first enemy
-# 9. Collision detection between player and enemy
-# 10. Death animation and GAME OVER label
-# 11. A provisional title screen
-# 12. Drawn images of all enemies
-# 13. Provisional enemy death scene
-# 14. Collision arrow/enemy
-# 15. Level cutscenes added (provisional)
-# 16. Health system added
-# 17. Hit and death animations introduced
-# 18. Sound effects introduced
-# 19. Music introduced
-
 # TODO:
-#  - Create final title screen with a picture;
-#  - Create instructions screen;
-#  - Create intro (3 pictures and text, fading to black)
-#  - Create five level cutscenes (fading to black)
-#  - Check for provisional solutions
-#  - Convert to .exe
+#  - Esthel's pictures
+#  - Level difficulty (health, scale, speed) adjustment
+#  - Convert to .exe: https://www.youtube.com/watch?v=lTxaran0Cig
+#    or https://pythoninoffice.com/freeze-python-code-how-to-run-script-without-python-installed/
+#  - Test on other computers
 
-#  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html),
-#    better OOP (an abstract class Player should be created!), parts to files, disable autofire,
-#    create collectibles, different weapons, more levels, high score table, full screen mode,
-#    waves, enemy groups etc. if necessary.
-#
-#    In the further levels maybe there could be a bigger probability that the enemies approach the player,
-#    instead of just wandering at random, which can be achieved using weighed probabilities (random.choices())
-#
-#    The links should be created using the os.join() method to provide work under all OS's.
+#  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html), fading to black,
+#    parts to files, create collectibles, different weapons, more levels, high score table, full screen mode,
+#    waves, enemy groups etc. if necessary. In the further levels maybe there could be a bigger probability that
+#    the enemies approach the player, instead of just wandering at random, which can be achieved using
+#    weighed probabilities (random.choices()).  The links should be created using the os.join() method to provide
+#    work under all OS's. Lastly, the code should be cleaned for a better OOP. For deployment purposes,
+#    also the comments should be deleted (should they?).
 
 # IMPORT NECESSARY MODULES
 import pygame
@@ -47,6 +22,7 @@ from settings import Settings
 
 # INITIALIZE PYGAME
 pygame.init()
+pygame.font.init()
 vec = pygame.math.Vector2
 
 
@@ -72,7 +48,7 @@ class Game:
         # Create enemy
         self.enemy = Enemy(700, 300, self.level)
         # Set font for game over
-        self.game_over_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
+        self.game_over_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 40)
         # Set game over label
         self.game_over_label = self.game_over_font.render("GAME OVER", True, (0, 0, 0))
         # Set font for health
@@ -83,12 +59,67 @@ class Game:
         self.new_level_starts = True
         # Game beginning sound
         self.game_beginning_sound = pygame.mixer.Sound("assets/sound/key_pressed.wav")
+        # Texts for lore, level cutscenes and outro
+        self.main_lore_texts = [
+            '''Nazywasz się Maciej Szymkiewicz. Pracujesz jako zakrystianin w parafii pod wezwaniem Narodzenia NMP w Choszcznie. Nienawidzisz tej pracy. Nazywasz ja kieratem. Dziś jest koniec sierpnia 2022 roku. To twój kolejny dzień w kieracie.''',
+            '''Myjąc naczynia liturgiczne i odpierając ostatnie ataki babć, dopraszających się o msze w intencji jakiegoś kolejnego <<Jana Nowak>>, usłyszałeś dobywające się spod ziemi szepty i wrzaski w przedziwnym języku. Jednocześnie na posadzce zakrystii zauważyłeś szczelinę, z której owe jęki się dobywają. To drzwi do innego świata!''',
+            '''Z drugiego świata dobywa się rozmowa. To sam wielki przedwieczny Cthulhu rozmawia z biskupem Dzięgą! Wszystko wskazuje na to, ze przekupił biskupa i ten zapewnił Wielkim Przedwiecznym wejście na Ziemię. Trzeba ratować świat! Wziąłeś luk i wskoczyłeś. Po chwili z mroków wyjrzała ohydna morda psa z mackami niczym od Cthulhu!''']
+        self.level_lore_texts = [
+            '''Ostatkiem sil pokonałeś potwornego psa. Resztki ohydnej głowy z mackami pozostały w poprzednim pomieszczeniu mrocznego lochu, w którym się znalazłeś. Zapomniałeś jednak o wrogu tak szybko, jak to możliwe. Zaczarował cię bowiem kompletnie ten cudowny śpiew, który dobywał się z głębin lochu. Czy to kolejna sztuczka podłego Cthulhu? Nie, to niemożliwe. Był zbyt piękny. Wielcy Przedwieczni nie umieją tworzyć piękna, tylko szaleństwo, zło i zniszczenie. Stwierdziłeś, ze musisz odnaleźć źródło tego śpiewu. Niestety, po chwili usłyszałeś potworny skrzek, a w kolejnym pomieszczeniu pojawiła się oślizgła, zielona kreatura...''',
+            '''Glowa potwora spadla i poturlała się pod ceglaną ścianę. Kolejne zwycięstwo! Tymczasem przepiękny śpiew nadal dobiegał z głębin lochu. Czy to syreny, przed którymi trzeba ratować się, przywiązując niczym Odyseusz do masztu? Jedno jest pewne. Trzeba pokonać Wielkich Przedwiecznych. Jeśli tego nie zrobisz, opanują nie tylko Choszczno, ale cały świat... W Choszcznie są Rodzice, Przyjaciele - nie możesz do tego dopuścić!''',
+            '''Z tym nie było już tak łatwo. Jesteś bardzo zmęczony walka. Marzysz chwilami o tym, by zasiąść w fotelu z dobrym RIS-em i pogadać z Jaremą i Esthelem o starych Polakach. Ale to nie Choszczno, nie Tychy, tu nie ma Jaremy i Esthela. Trzeba walczyć, i jedyne, co podtrzymuje cię na duchu, to dochodzący z oddali tęskny śpiew. ALE ZARAZ! Cóż to za postać w purpurze na tronie w kolejnym pomieszczeniu? Mimo złowieszczych, czerwonych oczu i wściekłego wyrazu twarzy rozpoznajesz samego Dzhiengę!''',
+            '''Dzhienga padł martwy, a jego ciało rozsypało się na kawałki i uleciało w złowieszczym pisku w górę. Sam tez wspiąłeś się na wieżę, z której oglądasz teraz okolice. To miasto cyklopowe R'lyeh, potworne, niszczące samym swym widokiem. Piękny śpiew dobiega zza krat. Jednak nagle drogę zastępuje ci sam WIELKI CTHULHU! <<To teraz, marny człowiecze, zapłacisz mi za swoje grzechy!!!>> Melodia zmienia się...''']
+        self.ending_text = '''Świat uratowany, wielki Cthulhu legł! Uwalniasz  porwana przez niego piękną kobietę. Śpiewała, przywołując swojego ratownika! To miłość od pierwszego wejrzenia.    - Jak masz na imię? - pytasz. - Mam na imię Agnieszka... - odpowiada brunetka. A dalsze wydarzenia ukryjmy przed ciekawskim okiem widzów...'''
+        self.level_names = ['Straszliwe Szczekanie', 'Zielona Zjawa', 'Żółta Obrzydliwość', 'Opętany Dzhienga',
+                            'Wielki Cthulhu']
 
     # Draw the background
     def draw_background(self, color):
-        print(self.enemy.health)
         self.screen.fill(color)
         self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)), (2, 2))
+
+    # Draw text
+    def draw_text(self, text: str, color: tuple, rect: tuple, font: pygame.font.Font, aa: bool = False, bkg=None):
+        """
+        Draws some text into an area of a surface. Automatically wraps words. Source: https://www.pygame.org/wiki/TextWrap
+        :param text: text to be displayed
+        :param color: colour tuple: (r, g, b)
+        :param rect: rectangle tuple: (left, top, width, height)
+        :param font: Pygame Font object
+        :param aa: anti-alias: True or False
+        :param bkg: background
+        :return: None
+        """
+        # Define rectangle, top and line spacing
+        rect = pygame.Rect(rect)
+        y = rect.top
+        line_spacing = 2
+        # get the height of the font
+        font_height = font.size("Tg")[1]
+        # Do the loop of blitting text
+        while text:
+            i = 1
+            # Determine if the row of text will be outside our area
+            if y + font_height > rect.bottom:
+                break
+            # Determine maximum width of line
+            while font.size(text[:i])[0] < rect.width and i < len(text):
+                i += 1
+            # If we've wrapped the text, then adjust the wrap to the last word
+            if i < len(text):
+                i = text.rfind(" ", 0, i) + 1
+            # Render the line suitable to the surface
+            if bkg:
+                text_label = font.render(text[:i], True, color, bkg)
+                text_label.set_colorkey(bkg)
+            else:
+                text_label = font.render(text[:i], aa, color)
+            # Blit the text
+            self.screen.blit(text_label, (rect.left, y))
+            # Move to the next line
+            y += font_height + line_spacing
+            # remove the text we just blitted
+            text = text[i:]
 
     # Run the game
     def run(self):
@@ -107,7 +138,7 @@ class Game:
             if self.new_level_starts:
                 self.new_level_setting()
             # Listen for events
-            self.check_events()
+            self.check_input()
             # Draw background
             self.draw_background(self.settings.game_screen_color)
             # Update player
@@ -135,7 +166,7 @@ class Game:
                 self.enemy.update_animation()
                 self.enemy.draw(self.screen)
             # ...or go to the  next level
-            elif not self.enemy.alive and self.enemy.explosion_coooldown_over:
+            elif not self.enemy.alive and self.enemy.explosion_coooldown_over and self.player.alive:
                 self.player.kill()
                 for arrow in self.arrow_group:
                     arrow.kill()
@@ -143,22 +174,24 @@ class Game:
                 if self.level < 4:
                     self.level += 1
                 else:
-                    pygame.mixer.music.stop()
+                    pygame.time.wait(700)
                     self.ending()
+                    self.credits()
+                    self.post_credits()
             # Move player
             if pygame.time.get_ticks() >= self.player.next_move and self.player.alive:
                 self.player.move()
                 self.player.next_move = pygame.time.get_ticks() + 3
             # Check collision of player with the enemy
             self.check_collisions()
-            # TODO: PROVISIONAL Check for game over
+            # Check for game over
             if not self.player.alive and self.player.death_animation_over:
                 self.game_over()
             # Update display
             pygame.display.update()
 
     # Event listener
-    def check_events(self):
+    def check_input(self):
         for event in pygame.event.get():
             # Check for quitting
             if event.type == pygame.QUIT:
@@ -212,18 +245,28 @@ class Game:
 
     def main_menu(self):
         # Set font for labels on the title screen
-        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
-        pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 50)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 30)
+        main_image = pygame.image.load(os.path.join("assets", "title_picture.png"))
+        main_image = pygame.transform.scale(main_image, (350, 230))
+        self.screen.fill((0, 0, 0))
+        pygame.display.update()
         # Loop for the main menu
         main_menu_run = True
         while main_menu_run:
             # Put labels on the screen
             title_label = title_font.render("CZARNY ZAKRYSTIANIN", True, (255, 0, 0))
-            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            instruction_label = pushbutton_font.render("STRZAŁKI - PORUSZANIE, Z - STRZAŁ", True, (255, 255, 255))
+            space_label = pushbutton_font.render("SPACJA - START, ESC - WYJŚCIE Z GRY", True, (255, 255, 255))
             self.screen.blit(title_label, (self.settings.screen_width / 2 - title_label.get_width() / 2,
-                                           self.settings.screen_height * 0.2))
-            self.screen.blit(pushbutton_label, (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
-                                                self.settings.screen_height * 0.8))
+                                           self.settings.screen_height * 0.1))
+            self.screen.blit(main_image, (self.settings.screen_width / 2 - main_image.get_width() / 2,
+                                          self.settings.screen_height * 0.27))
+            self.screen.blit(instruction_label, (self.settings.screen_width / 2 - instruction_label.get_width() / 2,
+                                                 self.settings.screen_height * 0.78))
+            self.screen.blit(space_label, (self.settings.screen_width / 2 - space_label.get_width() / 2,
+                                           self.settings.screen_height * 0.85))
+
             # Update display
             pygame.display.update()
             # Listen for events. Start game if any key is pressed
@@ -232,37 +275,83 @@ class Game:
                     self.settings.game_run = False
                     main_menu_run = False
                 if event.type == pygame.KEYDOWN:
-                    print("Key pressed!")
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                    # Play sound
                     self.game_beginning_sound.play()
+                    # Display lore
+                    self.main_lore()
+                    pygame.mixer.music.stop()
                     main_menu_run = False
+
+    def main_lore(self):
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("assets/sound/main_lore.mp3")
+        pygame.mixer.music.play(0)
+        text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 23)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        self.screen.fill((0, 0, 0))
+        pygame.display.update()
+        for part in range(3):
+            main_lore_run = True
+            while main_lore_run:
+                # Background fill
+                self.screen.fill((0, 0, 0))
+                image = pygame.image.load(f"assets/lore_{part}.jpg")
+                image = pygame.transform.scale(image, (300, 280))
+                self.screen.blit(image, (self.settings.screen_width / 2 - image.get_width() / 2,
+                                         self.settings.screen_height * 0.1))
+                self.draw_text(text=self.main_lore_texts[part],
+                               color=(255, 255, 255),
+                               rect=(90, 360, 720, 150),
+                               font=text_font)
+                pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+                self.screen.blit(pushbutton_label,
+                                 (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                                  self.settings.screen_height * 0.9))
+                pygame.time.wait(1000)
+                pygame.display.update()
+                # Listen for events. Start game if any key is pressed
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.settings.game_run = False
+                        main_lore_run = False
+                        pygame.quit()
+                        break
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            self.main_menu()
+                        else:
+                            main_lore_run = False
 
     def level_cutscene(self, level):
         # Set font for labels on the title screen
-        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
-        pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 30)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
         level_cutscene_run = True
         self.screen.fill((0, 0, 0))
         pygame.display.update()
-        print("Started new cutscene")
-        pygame.time.delay(1000)
-        print("After delay")
         while level_cutscene_run:
             # Background fill
             self.screen.fill((0, 0, 0))
             # Put labels on the screen
             title_label = title_font.render(f"LEVEL {level + 1}", True, (255, 0, 0))
-            # TODO: PROVISIONAL, AN IMAGE SHOULD BE THERE!
-            image_provisional_label = title_font.render("IMAGE IN PROGRESS", True, (46, 224, 150))
+            image = pygame.image.load(f"assets/lore_level_{level+1}.jpg")
+            image = pygame.transform.scale(image, (300, 280))
+            text = text_font.render(f"{self.level_names[level]}", True, (255, 255, 255))
             pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
             self.screen.blit(title_label,
                              (self.settings.screen_width / 2 - title_label.get_width() / 2,
-                              self.settings.screen_height * 0.2))
-            self.screen.blit(image_provisional_label,
-                             (self.settings.screen_width / 2 - image_provisional_label.get_width() / 2,
-                              self.settings.screen_height * 0.5))
+                              self.settings.screen_height * 0.1))
+            self.screen.blit(image, (self.settings.screen_width / 2 - image.get_width() / 2,
+                                     self.settings.screen_height * 0.21))
+            self.screen.blit(text, (self.settings.screen_width / 2 - text.get_width() / 2,
+                                    self.settings.screen_height * 0.73))
             self.screen.blit(pushbutton_label,
                              (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
                               self.settings.screen_height * 0.9))
+            pygame.time.wait(1000)
             pygame.display.update()
             # Listen for events. Start game if any key is pressed
             for event in pygame.event.get():
@@ -270,12 +359,55 @@ class Game:
                     self.settings.game_run = False
                     level_cutscene_run = False
                 if event.type == pygame.KEYDOWN:
-                    level_cutscene_run = False
-        pygame.mixer.music.load(f'assets/sound/music_lev_{level+1}.mp3')
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                        level_cutscene_run = False
+                        pygame.mixer.music.stop()
+                        self.level = 0
+                        self.main_menu()
+                    else:
+                        level_cutscene_run = False
+        pygame.mixer.music.load(f'assets/sound/music_lev_{level + 1}.mp3')
         pygame.mixer.music.play(0)
+
+    def level_lore(self, level):
+        text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        level_lore_run = True
+        self.screen.fill((0, 0, 0))
+        pygame.display.update()
+        while level_lore_run:
+            # Background fill
+            self.screen.fill((0, 0, 0))
+            self.draw_text(text=self.level_lore_texts[level],
+                           color=(255, 255, 255),
+                           rect=(100, 100, 700, 700),
+                           font=text_font)
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.blit(pushbutton_label,
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.9))
+            pygame.time.wait(1000)
+            pygame.display.update()
+            # Listen for events. Start game if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    level_lore_run = False
+                    pygame.quit()
+                    break
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                        level_lore_run = False
+                        self.main_menu()
+                    else:
+                        level_lore_run = False
 
     def new_level_setting(self):
         pygame.mixer.music.stop()
+        if self.level > 0:
+            self.level_lore(self.level - 1)
         self.level_cutscene(self.level)
         self.enemy = Enemy(x=700, y=300, level=self.level)
         self.player = Player(x=100, y=100)
@@ -311,26 +443,29 @@ class Game:
 
     # Game ending
     def ending(self):
-        # Set font for labels on the title screen
-        title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 40)
-        pushbutton_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("assets/sound/ending.mp3")
+        pygame.mixer.music.play(0)
+        # Set font for labels on the ending screen
+        text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 20)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
         game_ending_run = True
         self.screen.fill((10, 20, 10))
         pygame.display.update()
-        pygame.time.delay(1000)
+        pygame.time.wait(700)
         while game_ending_run:
             # Background fill
             self.screen.fill((10, 20, 10))
             # Put labels on the screen
-            title_label = title_font.render(f"WYGRALES!!!", True, (255, 0, 0))
-            image_provisional_label = title_font.render("IMAGE IN PROGRESS", True, (46, 224, 150))
+            image = pygame.image.load("assets/ending.jpg")
+            image = pygame.transform.scale(image, (300, 280))
+            self.screen.blit(image, (self.settings.screen_width / 2 - image.get_width() / 2,
+                                     self.settings.screen_height * 0.1))
+            self.draw_text(text=self.ending_text,
+                           color=(255, 255, 255),
+                           rect=(90, 360, 720, 150),
+                           font=text_font)
             pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
-            self.screen.blit(title_label,
-                             (self.settings.screen_width / 2 - title_label.get_width() / 2,
-                              self.settings.screen_height * 0.2))
-            self.screen.blit(image_provisional_label,
-                             (self.settings.screen_width / 2 - image_provisional_label.get_width() / 2,
-                              self.settings.screen_height * 0.5))
             self.screen.blit(pushbutton_label,
                              (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
                               self.settings.screen_height * 0.9))
@@ -341,9 +476,102 @@ class Game:
                     self.settings.game_run = False
                     game_ending_run = False
                 if event.type == pygame.KEYDOWN:
-                    self.screen.fill((10, 20, 10))
-                    pygame.display.update()
-                    game_ending_run = False
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                        game_ending_run = False
+                        pygame.quit()
+                        break
+                    else:
+                        self.screen.fill((10, 20, 10))
+                        pygame.display.update()
+                        game_ending_run = False
+
+
+    def credits(self):
+        # Set font for labels on the title screen
+        title_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 35)
+        text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        credits_run = True
+        self.screen.fill((10, 20, 10))
+        pygame.display.update()
+        pygame.time.wait(700)
+        while credits_run:
+            # Background fill
+            title = title_font.render("WYGRAŁEŚ!", True, (255, 0, 0))
+            credit_title = title_font.render("TWORCY GRY:", True, (0, 255, 0))
+            jarema = text_font.render("Jarema Piekutowski", True, (255, 255, 255))
+            esthel = text_font.render("Piotr Bednarz", True, (255, 255, 255))
+            counselling = text_font.render("Doradztwo: Michał Kapuściński, Krzysztof Hubaczek", True, (255, 255, 255))
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.fill((10, 20, 10))
+            self.screen.blit(title, (self.settings.screen_width / 2 - title.get_width() / 2,
+                                     self.settings.screen_height * 0.1))
+            self.screen.blit(credit_title, (self.settings.screen_width / 2 - credit_title.get_width() / 2,
+                                            self.settings.screen_height * 0.2))
+            self.screen.blit(jarema, (self.settings.screen_width / 2 - jarema.get_width() / 2,
+                                      self.settings.screen_height * 0.3))
+            self.screen.blit(esthel, (self.settings.screen_width / 2 - esthel.get_width() / 2,
+                                      self.settings.screen_height * 0.4))
+            self.screen.blit(counselling, (self.settings.screen_width / 2 - counselling.get_width() / 2,
+                                           self.settings.screen_height * 0.5))
+            self.screen.blit(pushbutton_label,
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.9))
+            pygame.display.update()
+            # Listen for events. Start game if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    credits_run = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                        level_lore_run = False
+                        pygame.quit()
+                        break
+                    else:
+                        self.screen.fill((10, 20, 10))
+                        pygame.display.update()
+                        credits_run = False
+
+    def post_credits(self):
+        # Set font for labels on the screen
+        text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        post_credits_run = True
+        self.screen.fill((10, 20, 10))
+        pygame.display.update()
+        pygame.time.wait(700)
+        while post_credits_run:
+            # Background fill
+            text = '''Wraz z piekna Agnieszka trafiliscie z powrotem do naszego swiata i zamierzaliscie zyc spokojnie. Jednak ktoregos dnia w podziemiach kosciola znowu odezwalo sie szuranie macek...'''
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.fill((10, 20, 10))
+            self.draw_text(text=text,
+                           color=(255, 255, 255),
+                           rect=(90, 360, 720, 150),
+                           font=text_font)
+            self.screen.blit(pushbutton_label,
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.9))
+            pygame.display.update()
+            # Listen for events. Start game if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    post_credits_run = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                        level_lore_run = False
+                        pygame.quit()
+                        break
+                    else:
+                        self.screen.fill((10, 20, 10))
+                        pygame.display.update()
+                        post_credits_run = False
+        pygame.mixer.music.stop()
         self.main_menu()
 
 
@@ -383,7 +611,7 @@ class Player(pygame.sprite.Sprite):
         self.next_move = pygame.time.get_ticks() + 3
         # Set action
         # (0 - idle, 1 - moving up, 2 - moving down,
-        #  3 - moving left, 4 - moving right, 5 - dead TODO: CHANGE,
+        #  3 - moving left, 4 - moving right, 5 - dead,
         #  6 - up right, 7 - up left, 8 - down right, 9 - down left)
         # THERE SHOULD ACTUALLY BE FOUR "IDLES": FACING UP, RIGHT, DOWN AND LEFT
         self.action = 0
@@ -415,7 +643,7 @@ class Player(pygame.sprite.Sprite):
             self.animation_list.append(current_frame_list)
 
         # Add the same images ("up" and "down") for diagonal movement
-        # TODO: I know it's stupid but I do it only for time purposes
+        # I know it's stupid but I do it only for time purposes
         animation_types_diagonal = {"up": 4, "down": 4}
         for _ in range(2):
             for key, value in animation_types_diagonal.items():
@@ -484,8 +712,6 @@ class Player(pygame.sprite.Sprite):
             # Set current time as the update time
             self.update_time = pygame.time.get_ticks()
 
-    # TODO: Check if the player is alive (?)
-
     # Move the player
     def move(self):
         if self.moving_up and (self.y - (self.image.get_height() / 2)) > 0:
@@ -513,7 +739,7 @@ class Player(pygame.sprite.Sprite):
                           self.rect.centery,
                           self.shoot_direction)
             # Add the arrow to the arrow group
-            # TODO: SHOULDN'T THE ARROW GROUP BE AN ATTRIBUTE OF THE PLAYER?
+            # SHOULDN'T THE ARROW GROUP BE AN ATTRIBUTE OF THE PLAYER?
             arrow_group.add(arrow)
             self.shoot_sound.play()
             # Set shooting to False to prevent shooting more than one arrow
@@ -523,20 +749,20 @@ class Player(pygame.sprite.Sprite):
     def get_shoot_direction(self):
         if self.action == 1:  # if self.moving_up and not self.moving_left and not self.moving_right:
             return 0
-        elif self.action == 9:
-            return 135
-        elif self.action == 4:
-            return 90
-        elif self.action == 8:
-            return 45
-        elif self.action == 3:
-            return 180
-        elif self.action == 7:
-            return 225
         elif self.action == 2:
             return 270
+        elif self.action == 3:
+            return 180
+        elif self.action == 4:
+            return 90
         elif self.action == 6:
             return 315
+        elif self.action == 7:
+            return 225
+        elif self.action == 8:
+            return 45
+        elif self.action == 9:
+            return 135
         else:
             return 180
 
@@ -570,7 +796,7 @@ class Player(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
-# ENEMY CLASS
+# ENEMY CLASS TODO: change difficulty
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, level):
         # Initialize the parent Sprite class
@@ -581,7 +807,7 @@ class Enemy(pygame.sprite.Sprite):
         # Set level
         self.level = level
         # Set scale based on a level/scale dictionary
-        self.level_scale_dict = {0: 6, 1: 6, 2: 5, 3: 6, 4: 8}
+        self.level_scale_dict = {0: 6, 1: 6, 2: 5, 3: 7, 4: 9}
         self.scale = self.level_scale_dict[self.level]
         # Get settings
         self.settings = Settings()
@@ -592,15 +818,15 @@ class Enemy(pygame.sprite.Sprite):
         # Set first movement
         self.movement = random.choice(self.move_list)
         # Set speed
-        self.level_speed_dict = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+        self.level_speed_dict = {0: 1, 1: 2, 2: 3, 3: 3, 4: 3}
         self.speed = self.level_speed_dict[self.level]
         # Set if hit
         self.hit = False
         # Set health based on a level/health dictionary
-        self.level_health_dict = {0: 5, 1: 8, 2: 10, 3: 12, 4: 15}
+        self.level_health_dict = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
         self.health = self.level_health_dict[self.level]
         # Set next move time based on level #TODO: MAKE IT HARDER
-        self.level_move_delay_dict = {0: 5, 1: 5, 2: 5, 3: 5, 4: 5}
+        self.level_move_delay_dict = {0: 3, 1: 8, 2: 10, 3: 8, 4: 6}
         self.next_move = pygame.time.get_ticks() + self.level_move_delay_dict[self.level]
         # Set animation cooldown
         self.animation_cooldown = 100
@@ -698,7 +924,6 @@ class Enemy(pygame.sprite.Sprite):
     def update_animation(self):
         # If the animation list for current action has game_run out of frames,
         # reset frame index back to 0
-        # TODO: in the future it can be changed to: len(self.animation_list[level]) or in some other way
         if self.frame_index >= len(self.animation_list[self.level]):
             if self.alive and self.hit:
                 self.frame_index = 0
@@ -708,9 +933,7 @@ class Enemy(pygame.sprite.Sprite):
                     self.frame_index = 0
             if not self.alive:
                 self.frame_index = len(self.dead_animation_list[self.level]) - 1
-        # Change the animation's index after a short time.
         # Update image depending on current action and frame index
-        # TODO: PROVISIONAL DEATH ANIMATION HAS BEEN MADE, A BETTER ONE SHOULD BE MADE
         # Change self image
         if self.alive and not self.hit:
             self.image = self.animation_list[self.level][self.frame_index]
@@ -720,7 +943,6 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.dead_animation_list[self.level][self.frame_index]
         # Check if enough time has passed since the last update
         if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
-            # TODO: PROVISIONAL!
             if not self.alive:
                 # Add 1 to frame index to choose the next animation frame
                 self.frame_index += 1
@@ -734,7 +956,7 @@ class Enemy(pygame.sprite.Sprite):
                 # Add 1 to frame index to choose the next animation frame
                 self.frame_index += 1
 
-    # Check if the enemy is dead TODO: PROVISIONAL!
+    # Set variables at the enemy's death
     def die(self):
         self.alive = False
         self.frame_index = 0
