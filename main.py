@@ -63,66 +63,90 @@ class Game:
         self.main_lore_texts = [
             '''Nazywasz się Maciej Szymkiewicz. Pracujesz jako zakrystianin w parafii pod wezwaniem Narodzenia NMP w Choszcznie. Nienawidzisz tej pracy. Nazywasz ja kieratem. Dziś jest koniec sierpnia 2022 roku. To twój kolejny dzień w kieracie.''',
             '''Myjąc naczynia liturgiczne i odpierając ostatnie ataki babć, dopraszających się o msze w intencji jakiegoś kolejnego <<Jana Nowak>>, usłyszałeś dobywające się spod ziemi szepty i wrzaski w przedziwnym języku. Jednocześnie na posadzce zakrystii zauważyłeś szczelinę, z której owe jęki się dobywają. To drzwi do innego świata!''',
-            '''Z drugiego świata dobywa się rozmowa. To sam wielki przedwieczny Cthulhu rozmawia z biskupem Dzięgą! Wszystko wskazuje na to, ze przekupił biskupa i ten zapewnił Wielkim Przedwiecznym wejście na Ziemię. Trzeba ratować świat! Wziąłeś luk i wskoczyłeś. Po chwili z mroków wyjrzała ohydna morda psa z mackami niczym od Cthulhu!''']
+            '''Z drugiego świata dobywa się rozmowa. To sam wielki przedwieczny Cthulhu rozmawia z biskupem Dzięgą! Wszystko wskazuje na to, ze przekupił biskupa i ten zapewnił Wielkim Przedwiecznym wejście na Ziemię. Trzeba ratować świat! Wziąłeś łuk i wskoczyłeś. Po chwili z mroków wyjrzała ohydna morda psa z mackami niczym od Cthulhu!''']
         self.level_lore_texts = [
             '''Ostatkiem sil pokonałeś potwornego psa. Resztki ohydnej głowy z mackami pozostały w poprzednim pomieszczeniu mrocznego lochu, w którym się znalazłeś. Zapomniałeś jednak o wrogu tak szybko, jak to możliwe. Zaczarował cię bowiem kompletnie ten cudowny śpiew, który dobywał się z głębin lochu. Czy to kolejna sztuczka podłego Cthulhu? Nie, to niemożliwe. Był zbyt piękny. Wielcy Przedwieczni nie umieją tworzyć piękna, tylko szaleństwo, zło i zniszczenie. Stwierdziłeś, ze musisz odnaleźć źródło tego śpiewu. Niestety, po chwili usłyszałeś potworny skrzek, a w kolejnym pomieszczeniu pojawiła się oślizgła, zielona kreatura...''',
-            '''Glowa potwora spadla i poturlała się pod ceglaną ścianę. Kolejne zwycięstwo! Tymczasem przepiękny śpiew nadal dobiegał z głębin lochu. Czy to syreny, przed którymi trzeba ratować się, przywiązując niczym Odyseusz do masztu? Jedno jest pewne. Trzeba pokonać Wielkich Przedwiecznych. Jeśli tego nie zrobisz, opanują nie tylko Choszczno, ale cały świat... W Choszcznie są Rodzice, Przyjaciele - nie możesz do tego dopuścić!''',
-            '''Z tym nie było już tak łatwo. Jesteś bardzo zmęczony walka. Marzysz chwilami o tym, by zasiąść w fotelu z dobrym RIS-em i pogadać z Jaremą i Esthelem o starych Polakach. Ale to nie Choszczno, nie Tychy, tu nie ma Jaremy i Esthela. Trzeba walczyć, i jedyne, co podtrzymuje cię na duchu, to dochodzący z oddali tęskny śpiew. ALE ZARAZ! Cóż to za postać w purpurze na tronie w kolejnym pomieszczeniu? Mimo złowieszczych, czerwonych oczu i wściekłego wyrazu twarzy rozpoznajesz samego Dzhiengę!''',
-            '''Dzhienga padł martwy, a jego ciało rozsypało się na kawałki i uleciało w złowieszczym pisku w górę. Sam tez wspiąłeś się na wieżę, z której oglądasz teraz okolice. To miasto cyklopowe R'lyeh, potworne, niszczące samym swym widokiem. Piękny śpiew dobiega zza krat. Jednak nagle drogę zastępuje ci sam WIELKI CTHULHU! <<To teraz, marny człowiecze, zapłacisz mi za swoje grzechy!!!>> Melodia zmienia się...''']
-        self.ending_text = '''Świat uratowany, wielki Cthulhu legł! Uwalniasz  porwana przez niego piękną kobietę. Śpiewała, przywołując swojego ratownika! To miłość od pierwszego wejrzenia.    - Jak masz na imię? - pytasz. - Mam na imię Agnieszka... - odpowiada brunetka. A dalsze wydarzenia ukryjmy przed ciekawskim okiem widzów...'''
+            '''Głowa potwora spadła i poturlała się pod ceglaną ścianę. Kolejne zwycięstwo! Tymczasem przepiękny śpiew nadal dobiegał z głębin lochu. Czy to syreny, przed którymi trzeba ratować się, przywiązując niczym Odyseusz do masztu? Jedno jest pewne. Trzeba pokonać Wielkich Przedwiecznych. Jeśli tego nie zrobisz, opanują nie tylko Choszczno, ale cały świat... W Choszcznie są Rodzice, Przyjaciele - nie możesz do tego dopuścić!''',
+            '''"Ręce opadają" - wychrypiał w agonii potwór, a jego ramiona spadły z hukiem na ziemię. On sam wydał straszliwe wycie i padł. Z nim jednak nie było już tak łatwo. Jesteś bardzo zmęczony walka. Marzysz chwilami o tym, by zasiąść w fotelu z dobrym RIS-em i pogadać z Jaremą i Esthelem o starych Polakach. Ale to nie Choszczno, nie Tychy, tu nie ma Jaremy i Esthela. Trzeba walczyć, i jedyne, co podtrzymuje cię na duchu, to dochodzący z oddali tęskny śpiew. ALE ZARAZ! Cóż to za postać w purpurze na tronie w kolejnym pomieszczeniu? Mimo złowieszczych, czerwonych oczu i wściekłego wyrazu twarzy rozpoznajesz samego Dzhiengę!''',
+            '''Dzhienga padł martwy, a jego obmierzłe truchło rozsypało się na kawałki i uleciało w złowieszczym pisku w górę. Sam tez wspiąłeś się na wieżę, z której oglądasz teraz okolice. To miasto cyklopowe R'lyeh, potworne, niszczące samym swym widokiem. Piękny śpiew dobiega zza krat. Jednak nagle drogę zastępuje ci sam WIELKI CTHULHU! <<To teraz, marny człowiecze, zapłacisz mi za swoje grzechy!!!>> Melodia zmienia się...''']
+        self.ending_text = '''Świat uratowany, wielki Cthulhu legł! Uwalniasz porwaną przez niego piękną kobietę. Śpiewała, przywołując swojego ratownika! To miłość od pierwszego wejrzenia.    - Jak masz na imię? - pytasz. - Mam na imię Agnieszka... - odpowiada brunetka. A dalsze wydarzenia ukryjmy przed ciekawskim okiem widzów...'''
         self.level_names = ['Straszliwe Szczekanie', 'Zielona Zjawa', 'Żółta Obrzydliwość', 'Opętany Dzhienga',
                             'Wielki Cthulhu']
 
     # Draw the background
     def draw_background(self, color):
+        """Draws background of chosen color on Pygame screen.
+
+        Args:
+            color (tuple): colour code (r, g, b)
+
+        Returns:
+            None
+        """
         self.screen.fill(color)
         self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)), (2, 2))
 
     # Draw text
-    def draw_text(self, text: str, color: tuple, rect: tuple, font: pygame.font.Font, aa: bool = False, bkg=None):
+    def draw_text(self, text: str, color: tuple, rect: tuple, font: pygame.font.Font, aa: bool = False, bkg=None) -> None:
+        """Draw text on an area of a surface. Automatically wraps words. Source: https://www.pygame.org/wiki/TextWrap
+
+        Args:
+            text (str): text to be displayed
+            color (tuple): colour code (r, g, b)
+            rect (tuple): rectangle coordinates (left, top, width, height)
+            font (pygame.font.Font): the font object
+            aa (bool): anti-alias: True or False
+            bkg: background colour key
+
+        Returns:
+            None
+
         """
-        Draws some text into an area of a surface. Automatically wraps words. Source: https://www.pygame.org/wiki/TextWrap
-        :param text: text to be displayed
-        :param color: colour tuple: (r, g, b)
-        :param rect: rectangle tuple: (left, top, width, height)
-        :param font: Pygame Font object
-        :param aa: anti-alias: True or False
-        :param bkg: background
-        :return: None
-        """
-        # Define rectangle, top and line spacing
+        # Define rectangle, its top and line spacing
         rect = pygame.Rect(rect)
         y = rect.top
         line_spacing = 2
-        # get the height of the font
+        # Get the height of the font
         font_height = font.size("Tg")[1]
-        # Do the loop of blitting text
+        # Loop: blit text while it hasn't run out
         while text:
+            # Initial number of letters in the row is 1.
             i = 1
-            # Determine if the row of text will be outside our area
+            # Check if the next row of text is still inside the specified area
             if y + font_height > rect.bottom:
                 break
-            # Determine maximum width of line
+            # Determine maximum width of line (number of letters)
+            # for the text not to protrude beyond the width of the rectangle.
             while font.size(text[:i])[0] < rect.width and i < len(text):
                 i += 1
             # If we've wrapped the text, then adjust the wrap to the last word
+            # (to the last space)
             if i < len(text):
                 i = text.rfind(" ", 0, i) + 1
-            # Render the line suitable to the surface
+            # Render the line suitable to the surface size (render "i" letters)
+            # using background or not
             if bkg:
                 text_label = font.render(text[:i], True, color, bkg)
                 text_label.set_colorkey(bkg)
             else:
                 text_label = font.render(text[:i], aa, color)
-            # Blit the text
+            # Blit the text at the y coordinate
             self.screen.blit(text_label, (rect.left, y))
-            # Move to the next line
+            # Move to the next line increasing the y coordinate
             y += font_height + line_spacing
             # remove the text we just blitted
             text = text[i:]
 
     # Run the game
-    def run(self):
+    def run(self) -> None:
+        """Run the game
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         # Set level
         self.level = 0
 
@@ -192,6 +216,14 @@ class Game:
 
     # Event listener
     def check_input(self):
+        """Check for input from keyboard/mouse
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         for event in pygame.event.get():
             # Check for quitting
             if event.type == pygame.QUIT:
@@ -227,7 +259,14 @@ class Game:
                         self.player.shooting = False
 
     def check_collisions(self):
-        # Collision of arrow group and enemy
+        """Check collisions between sprites
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         colliding_arrows_list = pygame.sprite.spritecollide(self.enemy, self.arrow_group, dokill=True)
         if len(colliding_arrows_list) != 0:
             self.enemy.hit = True
@@ -244,6 +283,14 @@ class Game:
             self.game_over_cooldown = pygame.time.get_ticks() + 4000
 
     def main_menu(self):
+        """Display main menu
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         # Set font for labels on the title screen
         title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 50)
         pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 30)
@@ -285,6 +332,14 @@ class Game:
                     main_menu_run = False
 
     def main_lore(self):
+        """Display main lore
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         pygame.mixer.music.stop()
         pygame.mixer.music.load("assets/sound/main_lore.mp3")
         pygame.mixer.music.play(0)
@@ -324,7 +379,15 @@ class Game:
                         else:
                             main_lore_run = False
 
-    def level_cutscene(self, level):
+    def level_cutscene(self):
+        """Display level cutscene
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         # Set font for labels on the title screen
         title_font = pygame.font.Font(os.path.join("assets", "Minecraft.ttf"), 30)
         text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 30)
@@ -336,10 +399,10 @@ class Game:
             # Background fill
             self.screen.fill((0, 0, 0))
             # Put labels on the screen
-            title_label = title_font.render(f"LEVEL {level + 1}", True, (255, 0, 0))
-            image = pygame.image.load(f"assets/lore_level_{level+1}.jpg")
+            title_label = title_font.render(f"LEVEL {self.level + 1}", True, (255, 0, 0))
+            image = pygame.image.load(f"assets/lore_level_{self.level + 1}.jpg")
             image = pygame.transform.scale(image, (300, 280))
-            text = text_font.render(f"{self.level_names[level]}", True, (255, 255, 255))
+            text = text_font.render(f"{self.level_names[self.level]}", True, (255, 255, 255))
             pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
             self.screen.blit(title_label,
                              (self.settings.screen_width / 2 - title_label.get_width() / 2,
@@ -367,10 +430,18 @@ class Game:
                         self.main_menu()
                     else:
                         level_cutscene_run = False
-        pygame.mixer.music.load(f'assets/sound/music_lev_{level + 1}.mp3')
+        pygame.mixer.music.load(f'assets/sound/music_lev_{self.level + 1}.mp3')
         pygame.mixer.music.play(0)
 
-    def level_lore(self, level):
+    def level_lore(self):
+        """Display level lore
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
         pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
         level_lore_run = True
@@ -379,7 +450,7 @@ class Game:
         while level_lore_run:
             # Background fill
             self.screen.fill((0, 0, 0))
-            self.draw_text(text=self.level_lore_texts[level],
+            self.draw_text(text=self.level_lore_texts[self.level - 1],
                            color=(255, 255, 255),
                            rect=(100, 100, 700, 700),
                            font=text_font)
@@ -405,10 +476,18 @@ class Game:
                         level_lore_run = False
 
     def new_level_setting(self):
+        """Set up variables for the next level and display lore and cutscene.
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         pygame.mixer.music.stop()
         if self.level > 0:
-            self.level_lore(self.level - 1)
-        self.level_cutscene(self.level)
+            self.level_lore()
+        self.level_cutscene()
         self.enemy = Enemy(x=700, y=300, level=self.level)
         self.player = Player(x=100, y=100)
         self.player.moving_up = False
@@ -419,6 +498,14 @@ class Game:
         self.new_level_starts = False
 
     def game_over(self):
+        """Set up objects when the game is over.
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         if pygame.time.get_ticks() < self.game_over_cooldown:
             self.screen.blit(self.game_over_label,
                              (self.settings.screen_width / 2 - self.game_over_label.get_width() / 2,
@@ -443,6 +530,14 @@ class Game:
 
     # Game ending
     def ending(self):
+        """Display the ending
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         pygame.mixer.music.stop()
         pygame.mixer.music.load("assets/sound/ending.mp3")
         pygame.mixer.music.play(0)
@@ -486,8 +581,15 @@ class Game:
                         pygame.display.update()
                         game_ending_run = False
 
-
     def credits(self):
+        """Display credits
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         # Set font for labels on the title screen
         title_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 35)
         text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
@@ -527,7 +629,7 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.settings.game_run = False
-                        level_lore_run = False
+                        credits_run = False
                         pygame.quit()
                         break
                     else:
@@ -536,21 +638,33 @@ class Game:
                         credits_run = False
 
     def post_credits(self):
+        """Display the post-credits scene
+
+        Args:
+            self
+
+        Returns:
+            None
+        """
         # Set font for labels on the screen
         text_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
         pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        image = pygame.transform.scale(pygame.image.load(os.path.join("assets", "postcredits.jpg")), (300, 300))
         post_credits_run = True
         self.screen.fill((10, 20, 10))
         pygame.display.update()
         pygame.time.wait(700)
         while post_credits_run:
             # Background fill
-            text = '''Wraz z piekna Agnieszka trafiliscie z powrotem do naszego swiata i zamierzaliscie zyc spokojnie. Jednak ktoregos dnia w podziemiach kosciola znowu odezwalo sie szuranie macek...'''
+            text = '''Wraz z piekną Agnieszką trafiliście z powrotem do naszego świata i zamierzaliście żyć spokojnie. Jednak któregoś dnia w podziemiach koscioła znowu odezwało się szuranie macek...'''
             pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
             self.screen.fill((10, 20, 10))
+            self.screen.blit(image,
+                             (self.settings.screen_width / 2 - image.get_width() / 2,
+                              self.settings.screen_height * 0.1))
             self.draw_text(text=text,
                            color=(255, 255, 255),
-                           rect=(90, 360, 720, 150),
+                           rect=(90, 400, 720, 150),
                            font=text_font)
             self.screen.blit(pushbutton_label,
                              (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
@@ -564,7 +678,7 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.settings.game_run = False
-                        level_lore_run = False
+                        post_credits_run = False
                         pygame.quit()
                         break
                     else:
