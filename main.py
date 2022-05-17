@@ -1,10 +1,9 @@
 # CZARNY ZAKRYSTIANIN / THE DARK SACRISTAN
 # TODO:
 #  - Esthel's pictures
-#  - Level difficulty (health, scale, speed) adjustment
+#  - Test on other computers
 #  - Convert to .exe: https://www.youtube.com/watch?v=lTxaran0Cig
 #    or https://pythoninoffice.com/freeze-python-code-how-to-run-script-without-python-installed/
-#  - Test on other computers
 
 #  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html), fading to black,
 #    parts to files, create collectibles, different weapons, more levels, high score table, full screen mode,
@@ -194,6 +193,8 @@ class Game:
                 self.player.kill()
                 for arrow in self.arrow_group:
                     arrow.kill()
+                pygame.time.wait(700)
+                pygame.event.clear()
                 self.new_level_starts = True
                 if self.level < 4:
                     self.level += 1
@@ -921,7 +922,7 @@ class Enemy(pygame.sprite.Sprite):
         # Set level
         self.level = level
         # Set scale based on a level/scale dictionary
-        self.level_scale_dict = {0: 6, 1: 6, 2: 5, 3: 6, 4: 8}
+        self.level_scale_dict = {0: 5, 1: 4, 2: 5, 3: 6, 4: 8}
         self.scale = self.level_scale_dict[self.level]
         # Get settings
         self.settings = Settings()
