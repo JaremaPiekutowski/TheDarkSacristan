@@ -65,12 +65,12 @@ class Game:
             '''Myjąc naczynia liturgiczne i odpierając ostatnie ataki babć, dopraszających się o msze w intencji jakiegoś kolejnego <<Jana Nowak>>, usłyszałeś dobywające się spod ziemi szepty i wrzaski w przedziwnym języku. Jednocześnie na posadzce zakrystii zauważyłeś szczelinę, z której owe jęki się dobywają. To drzwi do innego świata!''',
             '''Z drugiego świata dobywa się rozmowa. To sam wielki przedwieczny Cthulhu rozmawia z biskupem Dzięgą! Wszystko wskazuje na to, ze przekupił biskupa i ten zapewnił Wielkim Przedwiecznym wejście na Ziemię. Trzeba ratować świat! Wziąłeś łuk i wskoczyłeś. Po chwili z mroków wyjrzała ohydna morda psa z mackami niczym od Cthulhu!''']
         self.level_lore_texts = [
-            '''Ostatkiem sil pokonałeś potwornego psa. Resztki ohydnej głowy z mackami pozostały w poprzednim pomieszczeniu mrocznego lochu, w którym się znalazłeś. Zapomniałeś jednak o wrogu tak szybko, jak to możliwe. Zaczarował cię bowiem kompletnie ten cudowny śpiew, który dobywał się z głębin lochu. Czy to kolejna sztuczka podłego Cthulhu? Nie, to niemożliwe. Był zbyt piękny. Wielcy Przedwieczni nie umieją tworzyć piękna, tylko szaleństwo, zło i zniszczenie. Stwierdziłeś, ze musisz odnaleźć źródło tego śpiewu. Niestety, po chwili usłyszałeś potworny skrzek, a w kolejnym pomieszczeniu pojawiła się oślizgła, zielona kreatura...''',
+            '''Ostatkiem sił pokonałeś potwornego psa. Resztki ohydnej głowy z mackami pozostały w poprzednim pomieszczeniu mrocznego lochu, w którym się znalazłeś. Zapomniałeś jednak o wrogu tak szybko, jak to możliwe. Zaczarował cię bowiem kompletnie ten cudowny śpiew, który dobywał się z głębin lochu. Czy to kolejna sztuczka podłego Cthulhu? Nie, to niemożliwe. Ten śpiew jest zbyt piękny. Wielcy Przedwieczni nie umieją tworzyć piękna, tylko szaleństwo, zło i zniszczenie. Stwierdziłeś, ze musisz odnaleźć źródło śpiewu. Niestety, po chwili usłyszałeś potworny skrzek, a w kolejnym pomieszczeniu pojawiła się oślizgła, zielona kreatura...''',
             '''Głowa potwora spadła i poturlała się pod ceglaną ścianę. Kolejne zwycięstwo! Tymczasem przepiękny śpiew nadal dobiegał z głębin lochu. Czy to syreny, przed którymi trzeba ratować się, przywiązując niczym Odyseusz do masztu? Jedno jest pewne. Trzeba pokonać Wielkich Przedwiecznych. Jeśli tego nie zrobisz, opanują nie tylko Choszczno, ale cały świat... W Choszcznie są Rodzice, Przyjaciele - nie możesz do tego dopuścić!''',
-            '''"Ręce opadają" - wychrypiał w agonii potwór, a jego ramiona spadły z hukiem na ziemię. On sam wydał straszliwe wycie i padł. Z nim jednak nie było już tak łatwo. Jesteś bardzo zmęczony walka. Marzysz chwilami o tym, by zasiąść w fotelu z dobrym RIS-em i pogadać z Jaremą i Esthelem o starych Polakach. Ale to nie Choszczno, nie Tychy, tu nie ma Jaremy i Esthela. Trzeba walczyć, i jedyne, co podtrzymuje cię na duchu, to dochodzący z oddali tęskny śpiew. ALE ZARAZ! Cóż to za postać w purpurze na tronie w kolejnym pomieszczeniu? Mimo złowieszczych, czerwonych oczu i wściekłego wyrazu twarzy rozpoznajesz samego Dzhiengę!''',
-            '''Dzhienga padł martwy, a jego obmierzłe truchło rozsypało się na kawałki i uleciało w złowieszczym pisku w górę. Sam tez wspiąłeś się na wieżę, z której oglądasz teraz okolice. To miasto cyklopowe R'lyeh, potworne, niszczące samym swym widokiem. Piękny śpiew dobiega zza krat. Jednak nagle drogę zastępuje ci sam WIELKI CTHULHU! <<To teraz, marny człowiecze, zapłacisz mi za swoje grzechy!!!>> Melodia zmienia się...''']
+            '''"Ręce opadają" - wychrypiał w agonii Król, a jego ramiona spadły z hukiem na ziemię. On sam wydał straszliwe wycie i padł. Z nim jednak nie było już tak łatwo. Jesteś bardzo zmęczony walką. Marzysz chwilami o tym, by zasiąść w fotelu z dobrym RIS-em i pogadać z Jaremą i Esthelem o starych Polakach. Ale to nie Choszczno, nie Tychy, tu nie ma Jaremy i Esthela. Trzeba walczyć, i jedyne, co podtrzymuje cię na duchu, to dochodzący z oddali tęskny śpiew. ALE ZARAZ! Cóż to za postać w purpurze na tronie w kolejnym pomieszczeniu? Mimo złowieszczych, czerwonych oczu i wściekłego wyrazu twarzy rozpoznajesz samego Dzhiengę!''',
+            '''Dzhienga padł martwy, a jego obmierzłe truchło rozsypało się na kawałki i uleciało w złowieszczym pisku w górę. Sam tez wspiąłeś się na wieżę, z której oglądasz teraz okolice. To miasto cyklopowe R'lyeh, potworne, niszczące samym swym widokiem. Piękny śpiew dobiega zza krat. Jednak nagle drogę zastępuje ci sam WIELKI CTHULHU! "To teraz, marny człowiecze, zapłacisz mi za swoje grzechy!!!". Melodia zmienia się.''']
         self.ending_text = '''Świat uratowany, wielki Cthulhu legł! Uwalniasz porwaną przez niego piękną kobietę. Śpiewała, przywołując swojego ratownika! To miłość od pierwszego wejrzenia.    - Jak masz na imię? - pytasz. - Mam na imię Agnieszka... - odpowiada brunetka. A dalsze wydarzenia ukryjmy przed ciekawskim okiem widzów...'''
-        self.level_names = ['Straszliwe Szczekanie', 'Zielona Zjawa', 'Żółta Obrzydliwość', 'Opętany Dzhienga',
+        self.level_names = ['Straszliwe Szczekanie', 'Zielona Zjawa', 'Król w Żółci', 'Opętany Dzhienga',
                             'Wielki Cthulhu']
 
     # Draw the background
@@ -656,7 +656,7 @@ class Game:
         pygame.time.wait(700)
         while post_credits_run:
             # Background fill
-            text = '''Wraz z piekną Agnieszką trafiliście z powrotem do naszego świata i zamierzaliście żyć spokojnie. Jednak któregoś dnia w podziemiach koscioła znowu odezwało się szuranie macek...'''
+            text = '''Wraz z piękną Agnieszką trafiliście z powrotem do naszego świata i zamierzaliście żyć spokojnie. Jednak któregoś dnia w podziemiach kościoła znowu odezwało się szuranie macek...'''
             pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
             self.screen.fill((10, 20, 10))
             self.screen.blit(image,
@@ -921,7 +921,7 @@ class Enemy(pygame.sprite.Sprite):
         # Set level
         self.level = level
         # Set scale based on a level/scale dictionary
-        self.level_scale_dict = {0: 6, 1: 6, 2: 5, 3: 7, 4: 9}
+        self.level_scale_dict = {0: 6, 1: 6, 2: 5, 3: 6, 4: 8}
         self.scale = self.level_scale_dict[self.level]
         # Get settings
         self.settings = Settings()
@@ -932,15 +932,15 @@ class Enemy(pygame.sprite.Sprite):
         # Set first movement
         self.movement = random.choice(self.move_list)
         # Set speed
-        self.level_speed_dict = {0: 1, 1: 2, 2: 3, 3: 3, 4: 3}
+        self.level_speed_dict = {0: 1, 1: 1, 2: 2, 3: 2, 4: 2}
         self.speed = self.level_speed_dict[self.level]
         # Set if hit
         self.hit = False
         # Set health based on a level/health dictionary
-        self.level_health_dict = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+        self.level_health_dict = {0: 8, 1: 10, 2: 12, 3: 15, 4: 18}
         self.health = self.level_health_dict[self.level]
         # Set next move time based on level #TODO: MAKE IT HARDER
-        self.level_move_delay_dict = {0: 3, 1: 8, 2: 10, 3: 8, 4: 6}
+        self.level_move_delay_dict = {0: 4, 1: 4, 2: 6, 3: 8, 4: 8}
         self.next_move = pygame.time.get_ticks() + self.level_move_delay_dict[self.level]
         # Set animation cooldown
         self.animation_cooldown = 100
