@@ -1,11 +1,5 @@
 # CZARNY ZAKRYSTIANIN / THE DARK SACRISTAN
-# TODO:
-#  - Esthel's pictures
-#  - Test on other computers
-#  - Convert to .exe: https://www.youtube.com/watch?v=lTxaran0Cig
-#    or https://pythoninoffice.com/freeze-python-code-how-to-run-script-without-python-installed/
-
-#  - Further improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html), fading to black,
+#  - Further possible improvements incl. tiles (https://pygame.readthedocs.io/en/latest/tiles/tiles.html), fading to black,
 #    parts to files, create collectibles, different weapons, more levels, high score table, full screen mode,
 #    waves, enemy groups etc. if necessary. In the further levels maybe there could be a bigger probability that
 #    the enemies approach the player, instead of just wandering at random, which can be achieved using
@@ -20,6 +14,7 @@ import random
 from settings import Settings
 
 # INITIALIZE PYGAME
+pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
 pygame.init()
 pygame.font.init()
 vec = pygame.math.Vector2
@@ -354,7 +349,7 @@ class Game:
                 # Background fill
                 self.screen.fill((0, 0, 0))
                 image = pygame.image.load(f"assets/lore_{part}.jpg")
-                image = pygame.transform.scale(image, (300, 280))
+                image = pygame.transform.scale(image, (330, 280))
                 self.screen.blit(image, (self.settings.screen_width / 2 - image.get_width() / 2,
                                          self.settings.screen_height * 0.1))
                 self.draw_text(text=self.main_lore_texts[part],
@@ -527,7 +522,46 @@ class Game:
             self.player.moving_right = False
             self.player.shooting = False
             pygame.mixer.music.stop()
+            self.game_over_scene()
             self.main_menu()
+
+    def game_over_scene(self):
+        # Set font for labels on the ending screen
+        pushbutton_font = pygame.font.Font(os.path.join("assets", "LanaPixel.ttf"), 25)
+        game_over_run = True
+        self.screen.fill((10, 20, 10))
+        pygame.display.update()
+        pygame.time.wait(700)
+        while game_over_run:
+            # Background fill
+            self.screen.fill((10, 20, 10))
+            # Put labels on the screen
+            image = pygame.image.load("assets/game_over.jpg")
+            self.screen.blit(image, (self.settings.screen_width / 2 - image.get_width() / 2,
+                                     self.settings.screen_height * 0.1))
+            game_over_label = pushbutton_font.render("GAME OVER", True, (255, 0, 0))
+            self.screen.blit(game_over_label, (self.settings.screen_width / 2 - game_over_label.get_width() / 2,
+                                               self.settings.screen_height * 0.85))
+            pushbutton_label = pushbutton_font.render("PRESS ANY KEY", True, (255, 255, 255))
+            self.screen.blit(pushbutton_label,
+                             (self.settings.screen_width / 2 - pushbutton_label.get_width() / 2,
+                              self.settings.screen_height * 0.92))
+            pygame.display.update()
+            # Listen for events. Go to main menu if any key is pressed
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.settings.game_run = False
+                    game_over_run = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.settings.game_run = False
+                        game_over_run = False
+                        pygame.quit()
+                        break
+                    else:
+                        self.screen.fill((10, 20, 10))
+                        pygame.display.update()
+                        game_over_run = False
 
     # Game ending
     def ending(self):
@@ -780,7 +814,7 @@ class Player(pygame.sprite.Sprite):
         # Set shoot sound effect
         self.shoot_sound = pygame.mixer.Sound('assets/sound/arrow_shoot.wav')
         # Set death sound effect
-        self.death_sound = pygame.mixer.Sound('assets/sound/game_die.mp3')
+        self.death_sound = pygame.mixer.Sound('assets/sound/arrow_shoot.wav')
         # Get rectangle
         self.rect = self.image.get_rect()
 

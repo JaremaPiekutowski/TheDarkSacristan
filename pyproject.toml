@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "thedarksacristan"
+version = "0.1.0"
+description = "Save the world from the attack of the Great Old Ones! A short 2D pixel game."
+authors = ["Jarema Piekutowski <jarema.piekutowski@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = "^2.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
