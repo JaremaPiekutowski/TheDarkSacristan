@@ -78,7 +78,8 @@ class Game:
             None
         """
         self.screen.fill(color)
-        self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)), (2, 2))
+        self.screen.blit(self.health_font.render(f"PLAYER HEALTH: {self.player.health}", True, (0, 0, 0)), (2, 2))
+        self.screen.blit(self.health_font.render(f"ENEMY HEALTH: {self.enemy.health}", True, (0, 0, 0)), (680, 2))
 
     # Draw text
     def draw_text(self, text: str, color: tuple, rect: tuple, font: pygame.font.Font, aa: bool = False, bkg=None) -> None:
@@ -273,10 +274,17 @@ class Game:
                 self.enemy.die()
 
         # Collision of player and enemy
-        if pygame.sprite.collide_rect(self.player, self.enemy) and self.player.alive and self.enemy.alive:
-            self.player.alive = False
-            self.player.death_sound.play()
-            self.game_over_cooldown = pygame.time.get_ticks() + 4000
+        if pygame.sprite.collide_rect(self.player,
+                                      self.enemy) and self.player.alive and self.enemy.alive and not self.player.hit:
+            self.player.hit = True
+            if self.player.health == 0:
+                self.player.alive = False
+                self.player.death_sound.play()
+                self.game_over_cooldown = pygame.time.get_ticks() + 4000
+            else:
+                self.player.health -= 1
+                self.player.hit_sound.play()
+                self.player.frame_index = 0
 
     def main_menu(self):
         """Display main menu
@@ -731,6 +739,8 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         # Get settings
         self.settings = Settings()
+        # Check if hit
+        self.hit = False
         # Check if alive
         self.alive = True
         # Set position
@@ -761,7 +771,8 @@ class Player(pygame.sprite.Sprite):
         # Set action
         # (0 - idle, 1 - moving up, 2 - moving down,
         #  3 - moving left, 4 - moving right, 5 - dead,
-        #  6 - up right, 7 - up left, 8 - down right, 9 - down left)
+        #  6 - up right, 7 - up left, 8 - down right, 9 - down left,
+        #  10 - hit)
         # THERE SHOULD ACTUALLY BE FOUR "IDLES": FACING UP, RIGHT, DOWN AND LEFT
         self.action = 0
         # Set animation cooldown
@@ -808,11 +819,22 @@ class Player(pygame.sprite.Sprite):
                     current_frame_list.append(img)
                 # Append the temporary frame list to the animation list of lists
                 self.animation_list.append(current_frame_list)
-
+        temp_list = []
+        for frame_number in range(2):
+            img = pygame.image.load(f'assets/player_hit_{frame_number}.png').convert_alpha()
+            img = pygame.transform.scale(img,
+                                         (
+                                             int(img.get_width() * self.scale),
+                                             int(img.get_height() * self.scale))
+                                         )
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
         # Set player image
         self.image = self.animation_list[self.action][self.frame_index]
         # Set shoot sound effect
         self.shoot_sound = pygame.mixer.Sound('assets/sound/arrow_shoot.wav')
+        # Set hit sound effect
+        self.hit_sound = pygame.mixer.Sound('assets/sound/player-hit.wav')
         # Set death sound effect
         self.death_sound = pygame.mixer.Sound('assets/sound/arrow_shoot.wav')
         # Get rectangle
@@ -821,7 +843,7 @@ class Player(pygame.sprite.Sprite):
     # Update the state of the player
     def update(self):
         # Update action
-        if self.alive:
+        if self.alive and not self.hit:
             if self.moving_up and not self.moving_left and not self.moving_right:
                 self.update_action(1)
             elif self.moving_right and not self.moving_up and not self.moving_down:
@@ -838,6 +860,8 @@ class Player(pygame.sprite.Sprite):
                 self.update_action(8)
             elif self.moving_down and self.moving_left:
                 self.update_action(9)
+        elif self.alive and self.hit:
+            self.update_action(10)
         else:
             self.update_action(5)
         if not self.moving_up and not self.moving_down and not self.moving_right \
@@ -935,6 +959,8 @@ class Player(pygame.sprite.Sprite):
         # reset frame index back to 0
         if self.frame_index >= len(self.animation_list[self.action]) and self.action != 5:
             self.frame_index = 0
+            if self.action == 10:
+                self.hit = False
         elif self.frame_index >= len(self.animation_list[self.action]) and self.action == 5:
             self.frame_index = len(self.animation_list[self.action]) - 1
             self.death_animation_over = True
